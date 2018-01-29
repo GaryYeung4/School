@@ -10,7 +10,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
 /**
@@ -21,19 +21,26 @@ public class Recitation1 extends Application {
     
     @Override
     public void start(Stage primaryStage) {
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
+        Button btn1 = new Button();
+        btn1.setText("Say 'Hello World'");
+        btn1.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("Hello World!");
             }
         });
-        
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
-        
+        Button btn2 = new Button();
+        btn2.setText("Say 'Goodbye Cruel World!'");
+        btn2.setOnAction(new EventHandler<ActionEvent>(){
+            @Override
+            public void handle(ActionEvent event){
+                System.out.println("Goodbye Cruel World!");
+            }
+        });
+        FlowPane root = new FlowPane();
+        root.getChildren().add(btn1);
+        root.getChildren().add(btn2);
         Scene scene = new Scene(root, 300, 250);
         
         primaryStage.setTitle("Hello World!");
