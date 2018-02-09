@@ -1,10 +1,22 @@
 package ui;
 
 import actions.AppActions;
+import dataprocessors.TSDProcessor;
+import javafx.scene.Scene;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToolBar;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import vilij.propertymanager.PropertyManager;
+import static vilij.settings.PropertyTypes.EXIT_TOOLTIP;
+import static vilij.settings.PropertyTypes.LOAD_TOOLTIP;
+import static vilij.settings.PropertyTypes.NEW_TOOLTIP;
+import static vilij.settings.PropertyTypes.PRINT_TOOLTIP;
+import static vilij.settings.PropertyTypes.SAVE_TOOLTIP;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
@@ -39,7 +51,13 @@ public final class AppUI extends UITemplate {
 
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
-        // TODO for homework 1
+        PropertyManager manager = applicationTemplate.manager;
+        newButton = setToolbarButton(newiconPath, manager.getPropertyValue(NEW_TOOLTIP.name()), true);
+        saveButton = setToolbarButton(saveiconPath, manager.getPropertyValue(SAVE_TOOLTIP.name()), true);
+        loadButton = setToolbarButton(loadiconPath, manager.getPropertyValue(LOAD_TOOLTIP.name()), false);
+        printButton = setToolbarButton(printiconPath, manager.getPropertyValue(PRINT_TOOLTIP.name()), true);
+        exitButton = setToolbarButton(exiticonPath, manager.getPropertyValue(EXIT_TOOLTIP.name()), false);
+        toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton);
     }
 
     @Override
@@ -60,14 +78,47 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void clear() {
-        // TODO for homework 1
+        chart.getData().clear();
     }
 
     private void layout() {
-        // TODO for homework 1
+        
+        Label dFile = new Label("Data File");
+        appPane.getChildren().add(dFile);
+        textArea = new TextArea();
+        appPane.getChildren().add(textArea);
+        displayButton = new Button("Display");
+        appPane.getChildren().add(displayButton);
+        NumberAxis xAxis = new NumberAxis();
+        NumberAxis yAxis = new NumberAxis();
+        chart = new ScatterChart<Number,Number>(xAxis,yAxis);
+        chart.setTitle("Data Visualization");
+        appPane.getChildren().add(chart);
+
     }
 
     private void setWorkspaceActions() {
-        // TODO for homework 1
+        displayButton.setOnAction(e -> handleDisplayRequest());
+        
+        
+
+    }
+    private void handleDisplayRequest(){
+        this.clear();
+        TSDProcessor tsdProcessor = new TSDProcessor();
+        String userInput = textArea.getText();
+        try{
+            tsdProcessor.processString(userInput);
+        }catch(Exception e){
+            Stage errorStage = new Stage();
+            errorStage.setTitle("Error: Data Inputed Was in Incorrect Format");
+            StackPane pane = new StackPane();
+            pane.getChildren().add(new Label("Your data wasn't entered in the correct format. Please enter data in the correct format."));
+            Scene scene = new Scene(pane);
+            errorStage.setScene(scene);
+            errorStage.show();
+        }
+        tsdProcessor.toChartData(chart);
+        
     }
 }
