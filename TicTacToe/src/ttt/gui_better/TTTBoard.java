@@ -1,7 +1,11 @@
 package ttt.gui_better;
 
+import javafx.scene.control.Button;
+import javafx.scene.layout.ColumnConstraints;
 import ttt.engine.TTTEngine;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 
 /**
  * Graphical Tic-Tac-Toe board.
@@ -24,11 +28,32 @@ public class TTTBoard extends GridPane {
     }
 
     private void setConstraints() {
-        // ???
+        for (int i = 0; i < dim; i++) {
+            RowConstraints rc = new RowConstraints();
+            rc.setVgrow(Priority.ALWAYS);
+            rc.setFillHeight(true);
+            this.getRowConstraints().add(rc);
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setHgrow(Priority.ALWAYS);
+            cc.setFillWidth(true);
+            this.getColumnConstraints().add(cc);
+        }
     }
 
     private void addButtons() {
-        // ???
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                TTTButton btn = new TTTButton(gui,engine,i,j);
+                //Button btn = new Button("");
+                btn.setPrefWidth(50);
+                btn.setPrefHeight(50);
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setMaxHeight(Double.MAX_VALUE);
+                this.add(btn, j, i);
+                
+            }
+        }
+
     }
 
 }

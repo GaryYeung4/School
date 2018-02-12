@@ -1,5 +1,6 @@
 package ttt.gui_better;
 
+import javafx.scene.control.Alert;
 import ttt.engine.TTTEngine;
 import javafx.scene.control.Button;
 
@@ -22,11 +23,20 @@ public class TTTButton extends Button {
         this.engine = engine;
         this.row = row;
         this.col = col;
-        // ???
+        this.setListener();
     }
 
     private void setListener() {
-        // ???
+        try {
+            this.setText(engine.getPlayerToMove()
+                    == TTTEngine.X_PLAYER ? "X" : "O");
+            engine.makeMove(row, col);
+            if (engine.gameOver()) {
+                gui.alertGameOver();
+            }
+        } catch (TTTEngine.IllegalMoveException x) {
+            gui.alertIllegalMove();
+        }
     }
 
 }
