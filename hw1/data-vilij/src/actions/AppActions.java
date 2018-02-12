@@ -1,22 +1,34 @@
 package actions;
 
+import java.io.File;
 import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import vilij.components.ConfirmationDialog;
+import vilij.components.ConfirmationDialog.Option;
+import static vilij.components.ConfirmationDialog.Option.CANCEL;
+import static vilij.components.ConfirmationDialog.Option.YES;
 
 /**
- * This is the concrete implementation of the action handlers required by the application.
+ * This is the concrete implementation of the action handlers required by the
+ * application.
  *
  * @author Ritwik Banerjee
  */
 public final class AppActions implements ActionComponent {
 
-    /** The application to which this class of actions belongs. */
+    /**
+     * The application to which this class of actions belongs.
+     */
     private ApplicationTemplate applicationTemplate;
 
-    /** Path to the data file currently active. */
+    /**
+     * Path to the data file currently active.
+     */
     Path dataFilePath;
 
     public AppActions(ApplicationTemplate applicationTemplate) {
@@ -25,7 +37,16 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleNewRequest() {
-        // TODO for homework 1
+        try {
+
+            if (promptToSave()) {
+                applicationTemplate.getUIComponent().clear();
+            } else {
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
@@ -40,7 +61,7 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleExitRequest() {
-        // TODO for homework 1
+        System.exit(0);
     }
 
     @Override
@@ -53,20 +74,35 @@ public final class AppActions implements ActionComponent {
     }
 
     /**
-     * This helper method verifies that the user really wants to save their unsaved work, which they might not want to
-     * do. The user will be presented with three options:
+     * This helper method verifies that the user really wants to save their
+     * unsaved work, which they might not want to do. The user will be presented
+     * with three options:
      * <ol>
-     * <li><code>yes</code>, indicating that the user wants to save the work and continue with the action,</li>
-     * <li><code>no</code>, indicating that the user wants to continue with the action without saving the work, and</li>
-     * <li><code>cancel</code>, to indicate that the user does not want to continue with the action, but also does not
-     * want to save the work at this point.</li>
+     * <li><code>yes</code>, indicating that the user wants to save the work and
+     * continue with the action,</li>
+     * <li><code>no</code>, indicating that the user wants to continue with the
+     * action without saving the work, and</li>
+     * <li><code>cancel</code>, to indicate that the user does not want to
+     * continue with the action, but also does not want to save the work at this
+     * point.</li>
      * </ol>
      *
-     * @return <code>false</code> if the user presses the <i>cancel</i>, and <code>true</code> otherwise.
+     * @return <code>false</code> if the user presses the <i>cancel</i>, and
+     * <code>true</code> otherwise.
      */
     private boolean promptToSave() throws IOException {
-        // TODO for homework 1
-        // TODO remove the placeholder line below after you have implemented this method
-        return false;
+        ConfirmationDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK_TITLE"), applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK"));
+        Option userResponse = ConfirmationDialog.getDialog().getSelectedOption();
+        if (userResponse == CANCEL) {
+            return false;
+        }
+        if (userResponse == YES) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
+            fileChooser.getExtensionFilters().add(new ExtensionFilter(applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT_DESC"), applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT")));
+            File savedData = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
+        }
+        return true;
     }
 }
