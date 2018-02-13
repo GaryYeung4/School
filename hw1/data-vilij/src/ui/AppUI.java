@@ -2,9 +2,6 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.TSDProcessor;
-import java.awt.event.KeyEvent;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
@@ -96,12 +93,13 @@ public final class AppUI extends UITemplate {
         displayButton.setOnAction(e -> handleDisplayRequest());
 
     }
-    public void handleTextRequest(){
-        if(textArea.getText().isEmpty()){
+
+    public void handleTextRequest() {
+        if (textArea.getText().isEmpty()) {
             saveButton.setDisable(true);
             newButton.setDisable(true);
         }
-        if(!textArea.getText().isEmpty()){
+        if (!textArea.getText().isEmpty()) {
             saveButton.setDisable(false);
             newButton.setDisable(false);
         }
