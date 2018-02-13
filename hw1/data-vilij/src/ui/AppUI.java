@@ -2,6 +2,9 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.TSDProcessor;
+import java.awt.event.KeyEvent;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
@@ -70,8 +73,6 @@ public final class AppUI extends UITemplate {
     public void clear() {
         chart.getData().clear();
         textArea.clear();
-        newButton.setDisable(true);
-        saveButton.setDisable(true);
     }
 
     private void layout() {
@@ -91,8 +92,19 @@ public final class AppUI extends UITemplate {
     }
 
     private void setWorkspaceActions() {
+        textArea.setOnKeyTyped(e -> handleTextRequest());
         displayButton.setOnAction(e -> handleDisplayRequest());
 
+    }
+    public void handleTextRequest(){
+        if(textArea.getText().isEmpty()){
+            saveButton.setDisable(true);
+            newButton.setDisable(true);
+        }
+        if(!textArea.getText().isEmpty()){
+            saveButton.setDisable(false);
+            newButton.setDisable(false);
+        }
     }
 
     private void handleDisplayRequest() {
@@ -101,8 +113,6 @@ public final class AppUI extends UITemplate {
         TSDProcessor tsdProcessor = new TSDProcessor();
         try {
             tsdProcessor.processString(userInput);
-            newButton.setDisable(false);
-            saveButton.setDisable(false);
         } catch (Exception e) {
             ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", "Your data wasn't entered in the correct format. Please enter data in the correct format");
         }
