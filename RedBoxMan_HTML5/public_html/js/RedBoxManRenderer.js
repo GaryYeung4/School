@@ -93,13 +93,24 @@ function renderShapesRedBoxMan(location) {
     
     // DRAW HIS RED HEAD
     gc.fillStyle = headColor;
-    gc.fillRect(location.x, location.y, headW, headH);
-    gc.beginPath();
+        gc.setFill(Paint.valueOf(headColor));
+	gc.fillRect(location.getX(), location.getY(), headW, headH);
+        gc.fillStyle = Yellow;
+        gc.fillRect(location.getX()+20, location.getY()+10, 30, 30);
+        gc.fillRect(location.getX()+70, location.getY()+10, 30, 30);
+        gc.fillStyle = Black;
+        gc.fillRect(location.getX()+30, location.getY()+20, 10, 10);
+        gc.fillRect(location.getX()+80, location.getY()+20, 10, 10);
+        gc.fillRect(location.getX()+25, location.getY()+60, 80, 10);
+        gc.fillRect(location.getX()+20, location.getY()+headH, headW-30, headH-60);
+        gc.fillRect(location.getX()+30, location.getY()+headH+headH-60,65, 20);
+        gc.fillRect(location.getX()+20, location.getY()+headH+headH-60+20, 15, 15);
+        gc.fillRect(location.getX()+95, location.getY()+headH+headH-60+20, 15, 15);
+         gc.beginPath();
     gc.strokeStyle = outlineColor;
     gc.lineWidth = 1;
     gc.rect(location.x, location.y, headW, headH);
     gc.stroke();
-    
     // AND THEN DRAW THE REST OF HIM
 }
 
