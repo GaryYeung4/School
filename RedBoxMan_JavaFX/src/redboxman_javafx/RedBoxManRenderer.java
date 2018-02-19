@@ -1,5 +1,6 @@
 package redboxman_javafx;
 
+import javafx.scene.paint.Color;
 import java.io.InputStream;
 import java.util.ArrayList;
 import javafx.application.Application;
@@ -21,6 +22,7 @@ public class RedBoxManRenderer extends Application {
     GraphicsContext gc;
     ArrayList<Point2D> imagesRedBoxManLocations;
     ArrayList<Point2D> shapesRedBoxManLocations;
+    ArrayList<Point2D> replicaRedBoxManLocations;
     Image redBoxManImage;
     
     @Override
@@ -28,6 +30,7 @@ public class RedBoxManRenderer extends Application {
 	// INIT THE DATA MANAGERS
 	imagesRedBoxManLocations = new ArrayList<>();
 	shapesRedBoxManLocations = new ArrayList<>();
+        replicaRedBoxManLocations = new ArrayList<>();
 	
 	// LOAD THE RED BOX MAN IMAGE
         InputStream str = getClass().getResourceAsStream("/RedBoxMan.png");
@@ -47,6 +50,10 @@ public class RedBoxManRenderer extends Application {
 		shapesRedBoxManLocations.add(new Point2D(e.getX(), e.getY()));
 		render();
 	    }
+            else if (e.isAltDown()){
+                replicaRedBoxManLocations.add(new Point2D(e.getX(),e.getY()));
+                render();
+            }
 	    else if (e.isControlDown()) {
 		imagesRedBoxManLocations.add(new Point2D(e.getX(), e.getY()));
 		render();
@@ -74,6 +81,7 @@ public class RedBoxManRenderer extends Application {
     public void clear() {
 	shapesRedBoxManLocations.clear();
 	imagesRedBoxManLocations.clear();
+        replicaRedBoxManLocations.clear();
 	render();
     }
     
@@ -85,6 +93,9 @@ public class RedBoxManRenderer extends Application {
 	for (int j = 0; j < imagesRedBoxManLocations.size(); j++) {
 	    renderImageRedBoxMan(imagesRedBoxManLocations.get(j));
 	}
+        //for(int k = 0; k < replicaRedBoxManLocations.size(); ++k){
+          //  renderReplicaRedBoxMan(replicaRedBoxManLocations.get(k));
+        //}
     }
     
     public void renderShapeRedBoxMan(Point2D location) {
@@ -96,6 +107,17 @@ public class RedBoxManRenderer extends Application {
 	// DRAW HIS RED HEAD
         gc.setFill(Paint.valueOf(headColor));
 	gc.fillRect(location.getX(), location.getY(), headW, headH);
+        gc.setFill(Color.YELLOW);
+        gc.fillRect(location.getX()+20, location.getY()+10, 30, 30);
+        gc.fillRect(location.getX()+70, location.getY()+10, 30, 30);
+        gc.setFill(Color.BLACK);
+        gc.fillRect(location.getX()+30, location.getY()+20, 10, 10);
+        gc.fillRect(location.getX()+80, location.getY()+20, 10, 10);
+        gc.fillRect(location.getX()+25, location.getY()+60, 80, 10);
+        gc.fillRect(location.getX()+20, location.getY()+headH, headW-30, headH-60);
+        gc.fillRect(location.getX()+30, location.getY()+headH+headH-60,65, 20);
+        gc.fillRect(location.getX()+20, location.getY()+headH+headH-60+20, 15, 15);
+        gc.fillRect(location.getX()+95, location.getY()+headH+headH-60+20, 15, 15);
         gc.beginPath();
 	gc.setStroke(Paint.valueOf(outlineColor));
 	gc.setLineWidth(1);
