@@ -1,17 +1,28 @@
 package actions;
 
+import dataprocessors.TSDProcessor;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javax.imageio.ImageIO;
+import ui.AppUI;
 import vilij.components.ConfirmationDialog;
 import vilij.components.ConfirmationDialog.Option;
 import static vilij.components.ConfirmationDialog.Option.CANCEL;
 import static vilij.components.ConfirmationDialog.Option.YES;
+import vilij.components.ErrorDialog;
+import vilij.templates.UITemplate;
 
 /**
  * This is the concrete implementation of the action handlers required by the
@@ -30,6 +41,14 @@ public final class AppActions implements ActionComponent {
      * Path to the data file currently active.
      */
     Path dataFilePath;
+    public boolean saveState;
+    String loadedData;
+    int lineNumber;
+    private File sameFile;
+
+    public void setSaveState(boolean state) {
+        saveState = state;
+    }
 
     public AppActions(ApplicationTemplate applicationTemplate) {
         this.applicationTemplate = applicationTemplate;
@@ -37,6 +56,8 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleNewRequest() {
+        this.setSaveState(false);
+        sameFile = null;
         try {
 
             if (promptToSave()) {
@@ -51,12 +72,48 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleSaveRequest() {
-        // TODO: NOT A PART OF HW 1
+        try {
+            this.promptToSave();
+        } catch (Exception e) {
+            e.getMessage();
+        }
     }
 
     @Override
     public void handleLoadRequest() {
-        // TODO: NOT A PART OF HW 1
+        TSDProcessor tsdprocessor = new TSDProcessor();
+        lineNumber = 0;
+        loadedData = "";
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        FileChooser fc = new FileChooser();
+        fc.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
+        File chosenFile = fc.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+        try {
+            if (chosenFile != null) {
+                BufferedReader br = new BufferedReader(new FileReader(chosenFile));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    ++lineNumber;
+                    loadedData += (line + "\n");
+                }
+                if (lineNumber > 10) {
+                    ErrorDialog.getDialog().show("Error: Too many data points", "Your data had too many lines. It had " + lineNumber + " lines. Only showing top 10");
+                    br = new BufferedReader(new FileReader(chosenFile));
+                    loadedData = "";
+                    for (int i = 0; i < 10; ++i) {
+                        line = br.readLine();
+                        loadedData += (line + "\n");
+                    }
+                }
+                tsdprocessor.processString(loadedData);
+                appUI.getText().setText(loadedData);
+
+            }
+        } catch (Exception e) {
+            ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", e.getLocalizedMessage());
+        }
+        lineNumber = 0;
+        loadedData = "";
     }
 
     @Override
@@ -70,7 +127,24 @@ public final class AppActions implements ActionComponent {
     }
 
     public void handleScreenshotRequest() throws IOException {
-        // TODO: NOT A PART OF HW 1
+
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        FileChooser fc = new FileChooser();
+        fc.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("png", ".png"));
+        File image = fc.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+        if (image != null) {
+            try {
+                WritableImage pic = new WritableImage((int) appUI.getChart().getWidth(), (int) appUI.getChart().getHeight());
+                appUI.getChart().snapshot(null, pic);
+                ImageIO.write(SwingFXUtils.fromFXImage(pic, null), "png", image);
+                System.out.println("pic saved");
+            } catch (Exception e) {
+                e.getMessage();
+            }
+        }
+
+        System.out.println("Hello");
     }
 
     /**
@@ -91,17 +165,39 @@ public final class AppActions implements ActionComponent {
      * <code>true</code> otherwise.
      */
     private boolean promptToSave() throws IOException {
-        ConfirmationDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK_TITLE"), applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK"));
-        Option userResponse = ConfirmationDialog.getDialog().getSelectedOption();
-        if (userResponse == CANCEL) {
-            return false;
-        }
-        if (userResponse == YES) {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
-            fileChooser.getExtensionFilters().add(new ExtensionFilter(applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT_DESC"), applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT")));
-            File savedData = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        if (saveState) {
+            FileWriter fw = new FileWriter(sameFile);
+            fw.write(appUI.getText().getText());
+            fw.close();
+        } else {
+            ConfirmationDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK_TITLE"), applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK"));
+            Option userResponse = ConfirmationDialog.getDialog().getSelectedOption();
+            if (userResponse == CANCEL) {
+                this.setSaveState(false);
+                return false;
+            }
+            if (userResponse == YES) {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT_DESC"), applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT")));
+                File savedData = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+                if (savedData != null) {
+                    try {
+                        FileWriter fw = new FileWriter(savedData);
+                        fw.write(appUI.getText().getText());
+                        fw.close();
+                        this.setSaveState(true);
+                        sameFile = savedData;
+                    } catch (Exception e) {
+                        e.getMessage();
+                    }
+                }
+                return true;
 
+            }
+            this.setSaveState(false);
+            return true;
         }
         return true;
     }
