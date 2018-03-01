@@ -3,23 +3,23 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.TSDProcessor;
-import java.io.File;
 import static java.io.File.separator;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.embed.swing.SwingFXUtils;
+import javafx.collections.ObservableList;
+import javafx.scene.Cursor;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.WritableImage;
-import javafx.stage.FileChooser;
+import javafx.scene.control.Tooltip;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.imageio.ImageIO;
 import settings.AppPropertyTypes;
 import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
@@ -43,17 +43,17 @@ public final class AppUI extends UITemplate {
     @SuppressWarnings("FieldCanBeLocal")
     private Button scrnshotButton; // toolbar button to take a screenshot of the data
     private CheckBox readOnlyMode;
-    private ScatterChart<Number, Number> chart;          // the chart where data will be displayed
+    private LineChart<Number, Number> chart;          // the chart where data will be displayed
     private Button displayButton;  // workspace button to display data on the chart
     private TextArea textArea;       // text area for new data input
     private boolean hasNewText;     // whether or not the text area has any new data since last display
     private String newText = "";
 
-    public ScatterChart<Number, Number> getChart() {
+    public LineChart<Number, Number> getChart() {
         return chart;
     }
-    
-    public TextArea getText(){
+
+    public TextArea getText() {
         return textArea;
     }
 
@@ -93,7 +93,7 @@ public final class AppUI extends UITemplate {
         printButton.setOnAction(e -> applicationTemplate.getActionComponent().handlePrintRequest());
         scrnshotButton.setOnAction(e -> {
             try {
-                ((AppActions)applicationTemplate.getActionComponent()).handleScreenshotRequest();
+                ((AppActions) applicationTemplate.getActionComponent()).handleScreenshotRequest();
             } catch (IOException ex) {
                 Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -124,8 +124,13 @@ public final class AppUI extends UITemplate {
         readOnlyMode = new CheckBox("Read-Only Mode");
         appPane.getChildren().add(readOnlyMode);
         NumberAxis xAxis = new NumberAxis();
+        xAxis.setTickLabelFill(Color.CHOCOLATE);
         NumberAxis yAxis = new NumberAxis();
-        chart = new ScatterChart<Number, Number>(xAxis, yAxis);
+        yAxis.setTickLabelFill(Color.CHOCOLATE);
+        chart = new LineChart<Number, Number>(xAxis, yAxis);
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setVerticalGridLinesVisible(false);
+        chart.getStylesheets().add(AppUI.class.getResource("ChartUI.css").toExternalForm());
         chart.setTitle("Data Visualization");
         appPane.getChildren().add(chart);
 
@@ -145,7 +150,6 @@ public final class AppUI extends UITemplate {
         }
     }
 
-
     public void handleTextRequest() {
         if (textArea.getText().isEmpty()) {
             saveButton.setDisable(true);
@@ -154,6 +158,58 @@ public final class AppUI extends UITemplate {
         if (!textArea.getText().isEmpty()) {
             saveButton.setDisable(false);
             newButton.setDisable(false);
+        }
+    }
+
+    private void addAverageLine(TSDProcessor tsdProcessor) {
+        ArrayList<Double> xCoords = tsdProcessor.getXCoords();
+        ArrayList<Double> yCoords = tsdProcessor.getYCoords();
+        double smallestX = xCoords.get(0);
+        double largestX = xCoords.get(0);
+        double avgY = yCoords.get(0);
+        for (int i = 0; i < xCoords.size(); ++i) {
+            double currVal = xCoords.get(i);
+            if (smallestX > currVal) {
+                smallestX = currVal;
+            }
+            if (largestX < currVal) {
+                largestX = currVal;
+            }
+        }
+        for (int i = 1; i < yCoords.size(); ++i) {
+            avgY += yCoords.get(i);
+        }
+        avgY = avgY / yCoords.size();
+        XYChart.Series avg = new XYChart.Series<>();
+        XYChart.Data<Number, Number> firstPoint = new XYChart.Data<>(smallestX, avgY);
+        XYChart.Data<Number, Number> secondPoint = new XYChart.Data<>(largestX, avgY);
+        avg.getData().add(firstPoint);
+        avg.getData().add(secondPoint);
+        avg.setName("Average Y Values");
+        chart.getData().add(avg);
+        avg.getNode().getStyleClass().add("avg");
+        firstPoint.getNode().setVisible(false);
+        secondPoint.getNode().setVisible(false);
+    }
+
+    private void addNodeListeners() {
+        TSDProcessor tsdP = new TSDProcessor();
+        try {
+            tsdP.processString(textArea.getText());
+            ArrayList<String> nameList = tsdP.getNameList();
+            for (XYChart.Series<Number, Number> series : chart.getData()) {
+                for (XYChart.Data<Number, Number> point : series.getData()) {
+                    Tooltip tt = new Tooltip(nameList.get(0));
+                    nameList.remove(0);
+                    Tooltip.install(point.getNode(), tt);
+                    System.out.println("tooltip was added");
+                    point.getNode().setOnMouseEntered(e->appPane.setCursor(Cursor.HAND));
+                    point.getNode().setOnMouseExited(e-> appPane.setCursor(Cursor.DEFAULT));
+
+                }
+            }
+        } catch (Exception e) {
+            e.getMessage();
         }
     }
 
@@ -175,13 +231,18 @@ public final class AppUI extends UITemplate {
             try {
                 tsdProcessor.processString(userInput);
                 tsdProcessor.toChartData(chart);
+                this.addNodeListeners();
+                this.addAverageLine(tsdProcessor);
             } catch (Exception e) {
+                e.printStackTrace();
                 saveButton.setDisable(true);
+                chart.getData().clear();
                 ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", e.getLocalizedMessage());
             }
         }
     }
-    public void disableSave(){
+
+    public void disableSave() {
         saveButton.setDisable(true);
     }
 }

@@ -9,12 +9,10 @@ import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import javax.imageio.ImageIO;
 import ui.AppUI;
 import vilij.components.ConfirmationDialog;
@@ -61,7 +59,9 @@ public final class AppActions implements ActionComponent {
         try {
 
             if (promptToSave()) {
+                AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
                 applicationTemplate.getUIComponent().clear();
+                appUI.disableSave();
             } else {
 
             }
@@ -72,10 +72,14 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleSaveRequest() {
+        TSDProcessor tsdprocessor = new TSDProcessor();
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
         try {
+            tsdprocessor.processString(appUI.getText().getText());
             this.promptToSave();
         } catch (Exception e) {
-            e.getMessage();
+            appUI.disableSave();
+            ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", e.getLocalizedMessage());
         }
     }
 

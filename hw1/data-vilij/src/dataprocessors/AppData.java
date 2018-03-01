@@ -1,10 +1,14 @@
 package dataprocessors;
 
+import java.io.File;
+import java.io.FileWriter;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.templates.ApplicationTemplate;
 
 import java.nio.file.Path;
+import javafx.stage.FileChooser;
+import vilij.templates.UITemplate;
 
 /**
  * This is the concrete application-specific implementation of the data component defined by the Vilij framework.
@@ -28,12 +32,13 @@ public class AppData implements DataComponent {
     }
 
     public void loadData(String dataString) {
-        // TODO for homework 1
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        appUI.getText().setText(dataString);
     }
 
     @Override
     public void saveData(Path dataFilePath) {
-        
+
     }
 
     @Override

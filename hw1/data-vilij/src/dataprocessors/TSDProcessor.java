@@ -1,13 +1,13 @@
 package dataprocessors;
 
-import java.io.IOException;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
-import vilij.components.ErrorDialog;
+import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 
 /**
  * The data files used by this data visualization applications follow a
@@ -36,10 +36,26 @@ public final class TSDProcessor {
     private Map<String, String> dataLabels;
     private Map<String, Point2D> dataPoints;
     private int lineNumber;
+    private ArrayList<Double> xCoords;
+    private ArrayList<Double> yCoords;
+    private ArrayList<String> names;
 
     public TSDProcessor() {
-        dataLabels = new HashMap<>();
-        dataPoints = new HashMap<>();
+        dataLabels = new LinkedHashMap<>();
+        dataPoints = new LinkedHashMap<>();
+        xCoords = new ArrayList<>();
+        yCoords = new ArrayList<>();
+        names = new ArrayList<>();
+    }
+    public ArrayList<String> getNameList(){
+        return names;
+    }
+    public ArrayList<Double> getXCoords() {
+        return xCoords;
+    }
+
+    public ArrayList<Double> getYCoords() {
+        return yCoords;
     }
 
     /**
@@ -51,7 +67,7 @@ public final class TSDProcessor {
      */
     public void processString(String tsdString) throws Exception {
         lineNumber = 0;
-        Vector<String> nameList = new Vector<String>();
+        ArrayList<String> nameList = new ArrayList<String>();
         AtomicBoolean hadAnError = new AtomicBoolean(false);
         StringBuilder errorMessage = new StringBuilder();
         Stream.of(tsdString.split("\n"))
@@ -59,14 +75,22 @@ public final class TSDProcessor {
                 .forEach(list -> {
                     try {
                         ++lineNumber;
+                        double xVal;
+                        double yVal;
                         String name = checkedname(list.get(0));
                         nameList.add(name);
+                        names.add(name);
                         String label = list.get(1);
                         String[] pair = list.get(2).split(",");
-                        Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
+                        xVal = Double.parseDouble(pair[0]);
+                        yVal = Double.parseDouble(pair[1]);
+                        Point2D point = new Point2D(xVal, yVal);
+                        System.out.print(Double.parseDouble(pair[0]));
+                        xCoords.add(xVal);
+                        yCoords.add(yVal);
                         for (int i = 0; i < nameList.size(); ++i) {
                             for (int j = i + 1; j < nameList.size() - i; ++j) {
-                                if ((nameList.elementAt(i).compareTo(nameList.elementAt(j))) == 0) {
+                                if ((nameList.get(i).compareTo(nameList.get(j))) == 0) {
                                     errorMessage.append("You had one or more names duplicated");
                                 }
                             }
@@ -91,7 +115,7 @@ public final class TSDProcessor {
      * @param chart the specified chart
      */
     public void toChartData(XYChart<Number, Number> chart) {
-        Set<String> labels = new HashSet<>(dataLabels.values());
+        Set<String> labels = new LinkedHashSet<>(dataLabels.values());
         for (String label : labels) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
             series.setName(label);
@@ -102,6 +126,7 @@ public final class TSDProcessor {
             chart.getData().add(series);
         }
     }
+
 
     public void clear() {
         dataPoints.clear();
