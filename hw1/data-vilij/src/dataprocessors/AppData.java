@@ -1,13 +1,10 @@
 package dataprocessors;
 
-import java.io.File;
-import java.io.FileWriter;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.templates.ApplicationTemplate;
 
 import java.nio.file.Path;
-import javafx.stage.FileChooser;
 import vilij.templates.UITemplate;
 
 /**

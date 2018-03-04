@@ -85,7 +85,6 @@ public final class TSDProcessor {
                         xVal = Double.parseDouble(pair[0]);
                         yVal = Double.parseDouble(pair[1]);
                         Point2D point = new Point2D(xVal, yVal);
-                        System.out.print(Double.parseDouble(pair[0]));
                         xCoords.add(xVal);
                         yCoords.add(yVal);
                         for (int i = 0; i < nameList.size(); ++i) {

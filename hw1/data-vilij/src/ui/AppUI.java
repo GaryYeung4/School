@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import javafx.scene.Cursor;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -16,6 +15,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
@@ -119,6 +119,7 @@ public final class AppUI extends UITemplate {
         appPane.getChildren().add(dFile);
         textArea = new TextArea();
         appPane.getChildren().add(textArea);
+        textArea.setMaxHeight(220);
         displayButton = new Button("Display");
         appPane.getChildren().add(displayButton);
         readOnlyMode = new CheckBox("Read-Only Mode");
@@ -202,9 +203,8 @@ public final class AppUI extends UITemplate {
                     Tooltip tt = new Tooltip(nameList.get(0));
                     nameList.remove(0);
                     Tooltip.install(point.getNode(), tt);
-                    System.out.println("tooltip was added");
-                    point.getNode().setOnMouseEntered(e->appPane.setCursor(Cursor.HAND));
-                    point.getNode().setOnMouseExited(e-> appPane.setCursor(Cursor.DEFAULT));
+                    point.getNode().setOnMouseEntered(e -> appPane.setCursor(Cursor.HAND));
+                    point.getNode().setOnMouseExited(e -> appPane.setCursor(Cursor.DEFAULT));
 
                 }
             }

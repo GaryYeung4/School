@@ -16,7 +16,11 @@ and open the template in the editor.
 .avg{
     -fx-stroke:blue;   
 }
-
+.chart-plot-background {
+    -fx-border-color: blue; 
+    -fx-border-style: solid; 
+    -fx-border-width: 5px;
+}
 .axis{
  -fx-tick-length: 15; 
  -fx-minor-tick-length: 5;

@@ -94,6 +94,7 @@ public final class AppActions implements ActionComponent {
         File chosenFile = fc.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
         try {
             if (chosenFile != null) {
+                
                 BufferedReader br = new BufferedReader(new FileReader(chosenFile));
                 String line;
                 while ((line = br.readLine()) != null) {
@@ -102,12 +103,7 @@ public final class AppActions implements ActionComponent {
                 }
                 if (lineNumber > 10) {
                     ErrorDialog.getDialog().show("Error: Too many data points", "Your data had too many lines. It had " + lineNumber + " lines. Only showing top 10");
-                    br = new BufferedReader(new FileReader(chosenFile));
-                    loadedData = "";
-                    for (int i = 0; i < 10; ++i) {
-                        line = br.readLine();
-                        loadedData += (line + "\n");
-                    }
+                    this.handlePrintRequest();
                 }
                 tsdprocessor.processString(loadedData);
                 appUI.getText().setText(loadedData);
@@ -127,7 +123,6 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handlePrintRequest() {
-        // TODO: NOT A PART OF HW 1
     }
 
     public void handleScreenshotRequest() throws IOException {
@@ -142,13 +137,11 @@ public final class AppActions implements ActionComponent {
                 WritableImage pic = new WritableImage((int) appUI.getChart().getWidth(), (int) appUI.getChart().getHeight());
                 appUI.getChart().snapshot(null, pic);
                 ImageIO.write(SwingFXUtils.fromFXImage(pic, null), "png", image);
-                System.out.println("pic saved");
             } catch (Exception e) {
                 e.getMessage();
             }
         }
 
-        System.out.println("Hello");
     }
 
     /**
