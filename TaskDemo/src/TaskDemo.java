@@ -51,12 +51,18 @@ public class TaskDemo extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+    private void cancelButtonAct(Task task){
+        task.cancel();
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setContentText("You have cancelled a task");
+        alert.showAndWait();
+    }
 
     private void doTask(Task task) {
         String myName = Thread.currentThread().getName();
         Label myLabel = new Label(myName + " active");
         Button cancelButton = new Button("Cancel");
-        cancelButton.setOnAction(e -> task.cancel());
+        cancelButton.setOnAction(e -> this.cancelButtonAct(task));
         FlowPane myPane = new FlowPane();
         ProgressIndicator progress = new ProgressIndicator(0);
         ObservableList<Node> children = myPane.getChildren();
@@ -72,9 +78,11 @@ public class TaskDemo extends Application {
                 try {
                     // Perform a "banking transaction".
                     if (Math.random() >= 0.5) {
+                        lock.lock();
                         credits++;
                         debits++;
                     } else {
+                        lock.lock();
                         credits--;
                         debits--;
                     }
@@ -88,12 +96,15 @@ public class TaskDemo extends Application {
                 }
                 long tt = t;
                 double pct = (double) tt / time;
+                progress.setProgress(pct);
                 Thread.sleep(1);
             }
         } catch (InterruptedException x) {
-            // EMPTY EXCEPTION HANDLERS ARE OFTEN A BAD IDEA!
+            x.getMessage();
         }
-        taskView.getItems().remove(myPane);
+        Platform.runLater(()->{
+            taskView.getItems().remove(myPane);
+        });
     }
 
     public static void main(String[] args) {
