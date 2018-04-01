@@ -9,6 +9,6 @@ package dataprocessors;
  *
  * @author garyy
  */
-public interface CkassificationAlgorithm {
+public interface ClassificationAlgorithm {
     
 }
