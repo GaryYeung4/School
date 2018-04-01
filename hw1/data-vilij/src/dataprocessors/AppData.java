@@ -4,7 +4,7 @@ import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.templates.ApplicationTemplate;
 
-import java.nio.file.Path;
+import java.nio.file.Path; 
 import vilij.templates.UITemplate;
 
 /**
@@ -25,7 +25,6 @@ public class AppData implements DataComponent {
 
     @Override
     public void loadData(Path dataFilePath) {
-        // TODO: NOT A PART OF HW 1
     }
 
     public void loadData(String dataString) {

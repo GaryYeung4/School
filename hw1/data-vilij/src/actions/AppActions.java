@@ -7,9 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
-
 import java.io.IOException;
-import java.nio.file.Path;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
@@ -38,30 +36,35 @@ public final class AppActions implements ActionComponent {
     /**
      * Path to the data file currently active.
      */
-    Path dataFilePath;
     public boolean saveState;
-    String loadedData;
-    int lineNumber;
+    private String loadedData;
+    private int lineNumber;
     private File sameFile;
-
-    public void setSaveState(boolean state) {
-        saveState = state;
-    }
 
     public AppActions(ApplicationTemplate applicationTemplate) {
         this.applicationTemplate = applicationTemplate;
     }
 
+    private void setSaveState(boolean prop) {
+        saveState = prop;
+    }
+
     @Override
     public void handleNewRequest() {
-        this.setSaveState(false);
-        sameFile = null;
         try {
-
-            if (promptToSave()) {
+            if (saveState) {
                 AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
                 applicationTemplate.getUIComponent().clear();
                 appUI.disableSave();
+                sameFile = null;
+                this.setSaveState(false);
+            }
+            else if (promptToSave()) {
+                AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+                applicationTemplate.getUIComponent().clear();
+                appUI.disableSave();
+                sameFile = null;
+                this.setSaveState(false);
             } else {
 
             }
@@ -94,7 +97,7 @@ public final class AppActions implements ActionComponent {
         File chosenFile = fc.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
         try {
             if (chosenFile != null) {
-                
+
                 BufferedReader br = new BufferedReader(new FileReader(chosenFile));
                 String line;
                 while ((line = br.readLine()) != null) {
@@ -167,6 +170,7 @@ public final class AppActions implements ActionComponent {
             FileWriter fw = new FileWriter(sameFile);
             fw.write(appUI.getText().getText());
             fw.close();
+            appUI.disableSave();
         } else {
             ConfirmationDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK_TITLE"), applicationTemplate.manager.getPropertyValue("SAVE_UNSAVED_WORK"));
             Option userResponse = ConfirmationDialog.getDialog().getSelectedOption();
@@ -184,8 +188,10 @@ public final class AppActions implements ActionComponent {
                         FileWriter fw = new FileWriter(savedData);
                         fw.write(appUI.getText().getText());
                         fw.close();
-                        this.setSaveState(true);
                         sameFile = savedData;
+                        appUI.disableSave();
+                        this.setSaveState(true);
+
                     } catch (Exception e) {
                         e.getMessage();
                     }

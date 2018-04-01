@@ -2,7 +2,7 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
-import javafx.stage.Stage;
+import javafx.stage.Stage; 
 import vilij.templates.ApplicationTemplate;
 
 import static vilij.settings.InitializationParams.*;

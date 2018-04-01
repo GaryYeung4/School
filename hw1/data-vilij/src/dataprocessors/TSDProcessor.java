@@ -3,11 +3,13 @@ package dataprocessors;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
-import javafx.scene.Node;
-import javafx.scene.control.Tooltip;
+import java.util.ArrayList;
+import java.util.Arrays; 
+import java.util.LinkedHashMap; 
+import java.util.LinkedHashSet;
+import java.util.Map; 
+import java.util.Set; 
+import java.util.stream.Stream; 
 
 /**
  * The data files used by this data visualization applications follow a
@@ -68,7 +70,6 @@ public final class TSDProcessor {
     public void processString(String tsdString) throws Exception {
         lineNumber = 0;
         ArrayList<String> nameList = new ArrayList<String>();
-        AtomicBoolean hadAnError = new AtomicBoolean(false);
         StringBuilder errorMessage = new StringBuilder();
         Stream.of(tsdString.split("\n"))
                 .map(line -> Arrays.asList(line.split("\t")))
@@ -99,7 +100,6 @@ public final class TSDProcessor {
                     } catch (Exception e) {
                         errorMessage.setLength(0);
                         errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage()).append(" Error at line " + lineNumber);
-                        hadAnError.set(true);
                     }
                 });
         lineNumber = 0;
