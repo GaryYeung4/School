@@ -20,14 +20,14 @@ import javafx.scene.paint.Color;
  * @version 20180330
  */
 
-public class MandelbrotTask {
+public class MandelbrotTask extends ComputeTask<Image>{
     
     public MandelbrotTask() {
         this(new MandelbrotTaskState(), 10000, 100);
     }
 
     public MandelbrotTask(MandelbrotTaskState state, long iterations, long updateInterval) {
-        // oops...
+        super(state, iterations, updateInterval);
     }
 
 }
@@ -38,7 +38,7 @@ public class MandelbrotTask {
  * @author E. Stark
  * @version 20180330
  */
-class MandelbrotTaskState {
+class MandelbrotTaskState extends ComputeTaskState<Image>{
 
     /** Width of the rectangular grid of points. */
     private final int width;
@@ -88,7 +88,7 @@ class MandelbrotTaskState {
      * by which the imaginary part of the coordinate of a point increases
      * for each successive column of the grid.
      */
-    public MandelbrotTaskState(int width, int height, Complex center, double delta) {
+    public MandelbrotTaskState (int width, int height, Complex center, double delta) {
         this.width = width;
         this.height = height;
         this.origin = new Complex(center.getRealPart() - delta * height * 0.5,
