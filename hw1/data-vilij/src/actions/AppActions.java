@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
 import java.io.IOException;
+import java.util.ArrayList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
@@ -51,25 +52,29 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleNewRequest() {
-        try {
-            if (saveState) {
-                AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
-                applicationTemplate.getUIComponent().clear();
-                appUI.disableSave();
-                sameFile = null;
-                this.setSaveState(false);
-            }
-            else if (promptToSave()) {
-                AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
-                applicationTemplate.getUIComponent().clear();
-                appUI.disableSave();
-                sameFile = null;
-                this.setSaveState(false);
-            } else {
 
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        appUI.enableUIOnNew();
+        if (appUI.getText().getText().isEmpty()) {
+            return;
+        } else {
+            try {
+                if (saveState) {
+                    applicationTemplate.getUIComponent().clear();
+                    appUI.disableSave();
+                    sameFile = null;
+                    this.setSaveState(false);
+                } else if (promptToSave()) {
+                    applicationTemplate.getUIComponent().clear();
+                    appUI.disableSave();
+                    sameFile = null;
+                    this.setSaveState(false);
+                } else {
+
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
         }
     }
 
@@ -82,7 +87,7 @@ public final class AppActions implements ActionComponent {
             this.promptToSave();
         } catch (Exception e) {
             appUI.disableSave();
-            ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", e.getLocalizedMessage());
+            ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
         }
     }
 
@@ -92,6 +97,7 @@ public final class AppActions implements ActionComponent {
         lineNumber = 0;
         loadedData = "";
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        appUI.enableUIOnLoad();
         FileChooser fc = new FileChooser();
         fc.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
         File chosenFile = fc.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
@@ -105,15 +111,16 @@ public final class AppActions implements ActionComponent {
                     loadedData += (line + "\n");
                 }
                 if (lineNumber > 10) {
-                    ErrorDialog.getDialog().show("Error: Too many data points", "Your data had too many lines. It had " + lineNumber + " lines. Only showing top 10");
+                    ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_TOO_MANY_LINES_TITLE"), lineNumber + " loaded, displaying top 10 lines");
                     this.handlePrintRequest();
                 }
                 tsdprocessor.processString(loadedData);
                 appUI.getText().setText(loadedData);
+                appUI.updateDataInfo(lineNumber, tsdprocessor.getUniqueNames().size(), chosenFile.getName(), tsdprocessor.getUniqueNames());
 
             }
         } catch (Exception e) {
-            ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", e.getLocalizedMessage());
+            ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
         }
         lineNumber = 0;
         loadedData = "";

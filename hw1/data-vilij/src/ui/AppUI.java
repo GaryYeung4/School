@@ -4,21 +4,25 @@ package ui;
 import actions.AppActions;
 import dataprocessors.TSDProcessor;
 import static java.io.File.separator;
-import java.io.IOException; 
-import java.util.ArrayList; 
-import java.util.logging.Level; 
-import java.util.logging.Logger;                                        
-import javafx.scene.Cursor; 
-import javafx.scene.chart.LineChart; 
-import javafx.scene.chart.NumberAxis; 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button; 
-import javafx.scene.control.CheckBox; 
-import javafx.scene.control.Label; 
-import javafx.scene.control.TextArea; 
-import javafx.scene.control.Tooltip; 
-import javafx.scene.paint.Color; 
-import javafx.stage.Stage; 
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.Stage;
 import settings.AppPropertyTypes;
 import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
@@ -41,12 +45,14 @@ public final class AppUI extends UITemplate {
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button scrnshotButton; // toolbar button to take a screenshot of the data
-    private CheckBox readOnlyMode;
+    private Button doneButton;
+    private Button editButton;
     private LineChart<Number, Number> chart;          // the chart where data will be displayed
-    private Button displayButton;  // workspace button to display data on the chart
+    private Button runButton;  // workspace button to display data on the chart
     private TextArea textArea;       // text area for new data input
     private boolean hasNewText;     // whether or not the text area has any new data since last display
     private String newText = "";
+    private Label dataInfo;
 
     public LineChart<Number, Number> getChart() {
         return chart;
@@ -113,16 +119,29 @@ public final class AppUI extends UITemplate {
     }
 
     private void layout() {
-
-        Label dFile = new Label("Data File");
-        appPane.getChildren().add(dFile);
+        newButton.setDisable(false);
         textArea = new TextArea();
+        textArea.setVisible(false);
+        textArea.setDisable(true);
         appPane.getChildren().add(textArea);
-        textArea.setMaxHeight(220);
-        displayButton = new Button("Display");
-        appPane.getChildren().add(displayButton);
-        readOnlyMode = new CheckBox("Read-Only Mode");
-        appPane.getChildren().add(readOnlyMode);
+        textArea.setMinHeight(220);
+        doneButton = new Button("Done");
+        doneButton.setVisible(false);
+        doneButton.setDisable(true);
+        appPane.getChildren().add(doneButton);
+        editButton = new Button("Edit");
+        editButton.setVisible(false);
+        editButton.setDisable(true);
+        appPane.getChildren().add(editButton);
+        dataInfo = new Label();
+        dataInfo.setVisible(false);
+        appPane.getChildren().add(dataInfo);
+        //algorithm section
+        
+        runButton = new Button("Run");
+        runButton.setVisible(false);
+        runButton.setDisable(true);
+        appPane.getChildren().add(runButton);
         NumberAxis xAxis = new NumberAxis();
         xAxis.setTickLabelFill(Color.CHOCOLATE);
         NumberAxis yAxis = new NumberAxis();
@@ -131,23 +150,52 @@ public final class AppUI extends UITemplate {
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
         chart.getStylesheets().add(AppUI.class.getResource("ChartUI.css").toExternalForm());
-        chart.setTitle("Data Visualization");
         appPane.getChildren().add(chart);
 
     }
 
     private void setWorkspaceActions() {
         textArea.setOnKeyTyped(e -> handleTextRequest());
-        displayButton.setOnAction(e -> handleDisplayRequest());
-        readOnlyMode.setOnAction(e -> handleReadOnlyRequest());
+        runButton.setOnAction(e -> handleDisplayRequest());
+        doneButton.setOnAction(e -> handleDoneRequest());
+        editButton.setOnAction(e -> handleEditRequest());
     }
 
-    public void handleReadOnlyRequest() {
-        if (readOnlyMode.isSelected()) {
-            textArea.setDisable(true);
-        } else {
-            textArea.setDisable(false);
+    public void updateDataInfo(int instances, int labels, String fileName, ArrayList<String> list) {
+        StringBuffer labelText = new StringBuffer();
+        labelText.append(instances + " instances with " + labels + " labels loaded from " + fileName + ". The labels are:" + "\n");
+        for (String label : list) {
+            labelText.append("- " + label + "\n");
         }
+        dataInfo.setVisible(true);
+        dataInfo.setAlignment(Pos.TOP_LEFT);
+        dataInfo.setText(labelText.toString());
+        dataInfo.setMinHeight(100);
+
+    }
+
+    public void enableUIOnLoad() {
+        dataInfo.setVisible(true);
+        textArea.setVisible(true);
+    }
+
+    public void enableUIOnNew() {
+        this.enableUIOnLoad();
+        doneButton.setVisible(true);
+        editButton.setVisible(true);
+        textArea.setDisable(false);
+    }
+
+    public void handleDoneRequest() {
+        textArea.setDisable(true);
+        doneButton.setDisable(true);
+        editButton.setDisable(false);
+    }
+
+    public void handleEditRequest() {
+        textArea.setDisable(false);
+        editButton.setDisable(true);
+        doneButton.setDisable(false);
     }
 
     public void handleTextRequest() {
@@ -185,7 +233,7 @@ public final class AppUI extends UITemplate {
         XYChart.Data<Number, Number> secondPoint = new XYChart.Data<>(largestX, avgY);
         avg.getData().add(firstPoint);
         avg.getData().add(secondPoint);
-        avg.setName("Average Y Values");
+        avg.setName(applicationTemplate.manager.getPropertyValue("AVG_LINE_NAME"));
         chart.getData().add(avg);
         avg.getNode().getStyleClass().add("avg");
         firstPoint.getNode().setVisible(false);
@@ -221,7 +269,7 @@ public final class AppUI extends UITemplate {
             hasNewText = true;
         }
         if (!hasNewText) {
-            ErrorDialog.getDialog().show("Error: Repetitive Data", "You already inputted this data");
+            ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("REP_DATA_TITLE"), applicationTemplate.manager.getPropertyValue("REP_DATA_MESSAGE"));
 
         } else {
             newText = userInput;
@@ -236,7 +284,7 @@ public final class AppUI extends UITemplate {
                 e.printStackTrace();
                 saveButton.setDisable(true);
                 chart.getData().clear();
-                ErrorDialog.getDialog().show("Error: Data Inputed Was in Incorrect Format", e.getLocalizedMessage());
+                ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
             }
         }
     }

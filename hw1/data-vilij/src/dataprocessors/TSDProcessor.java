@@ -41,6 +41,7 @@ public final class TSDProcessor {
     private ArrayList<Double> xCoords;
     private ArrayList<Double> yCoords;
     private ArrayList<String> names;
+    private ArrayList<String> labels;
 
     public TSDProcessor() {
         dataLabels = new LinkedHashMap<>();
@@ -48,6 +49,8 @@ public final class TSDProcessor {
         xCoords = new ArrayList<>();
         yCoords = new ArrayList<>();
         names = new ArrayList<>();
+        labels = new ArrayList<>();
+        
     }
     public ArrayList<String> getNameList(){
         return names;
@@ -69,7 +72,7 @@ public final class TSDProcessor {
      */
     public void processString(String tsdString) throws Exception {
         lineNumber = 0;
-        ArrayList<String> nameList = new ArrayList<String>();
+        names.clear();
         StringBuilder errorMessage = new StringBuilder();
         Stream.of(tsdString.split("\n"))
                 .map(line -> Arrays.asList(line.split("\t")))
@@ -79,19 +82,20 @@ public final class TSDProcessor {
                         double xVal;
                         double yVal;
                         String name = checkedname(list.get(0));
-                        nameList.add(name);
                         names.add(name);
                         String label = list.get(1);
+                        labels.add(label);
                         String[] pair = list.get(2).split(",");
                         xVal = Double.parseDouble(pair[0]);
                         yVal = Double.parseDouble(pair[1]);
                         Point2D point = new Point2D(xVal, yVal);
                         xCoords.add(xVal);
                         yCoords.add(yVal);
-                        for (int i = 0; i < nameList.size(); ++i) {
-                            for (int j = i + 1; j < nameList.size() - i; ++j) {
-                                if ((nameList.get(i).compareTo(nameList.get(j))) == 0) {
+                        for (int i = 0; i < names.size()-1; ++i) {
+                            for (int j = i + 1; j < names.size(); ++j) {
+                                if ((names.get(i).compareTo(names.get(j))) == 0) {
                                     errorMessage.append("You had one or more names duplicated");
+                                    throw new Exception(errorMessage.toString());
                                 }
                             }
                         }
@@ -106,6 +110,22 @@ public final class TSDProcessor {
         if (errorMessage.length() > 0) {
             throw new Exception(errorMessage.toString());
         }
+    }
+    
+    public ArrayList<String> getUniqueNames(){
+        ArrayList<String> uniqueLabels = new ArrayList<>();
+        for(String label: labels){
+            boolean special = true;
+            for(String unique: uniqueLabels){
+                if(label.equals(unique)){
+                    special = false;
+                }
+            }
+            if(special){
+                uniqueLabels.add(label);
+            }
+        }
+        return uniqueLabels;
     }
 
     /**

@@ -9,6 +9,9 @@ package settings;
  */
 public enum AppPropertyTypes {
 
+    //line name
+    AVG_LINE_NAME,
+
     /* resource files and folders */
     DATA_RESOURCE_PATH,
 
@@ -20,6 +23,12 @@ public enum AppPropertyTypes {
 
     /* error messages */
     RESOURCE_SUBDIR_NOT_FOUND,
+    REP_DATA_TITLE,
+    DATA_INC_FORMAT_TITLE,
+    DATA_TOO_MANY_LINES_TITLE,
+    DATA_TOO_MANY_LINES_MESSAGE,
+    REP_DATA_MESSAGE,
+    
 
     /* application-specific message titles */
     SAVE_UNSAVED_WORK_TITLE,
@@ -32,4 +41,5 @@ public enum AppPropertyTypes {
     DATA_FILE_EXT_DESC,
     TEXT_AREA,
     SPECIFIED_FILE
+    
 }
