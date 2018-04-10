@@ -8,6 +8,9 @@ package settings;
  * @see vilij.settings.InitializationParams
  */
 public enum AppPropertyTypes {
+    
+    //Algorithm Selection Text
+    ALGORITHM_SELECTION_PROMPT,
 
     //line name
     AVG_LINE_NAME,

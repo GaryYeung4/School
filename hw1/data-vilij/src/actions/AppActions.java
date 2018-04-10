@@ -38,7 +38,7 @@ public final class AppActions implements ActionComponent {
      * Path to the data file currently active.
      */
     public boolean saveState;
-    private String loadedData;
+    private StringBuffer loadedData;
     private int lineNumber;
     private File sameFile;
 
@@ -95,7 +95,7 @@ public final class AppActions implements ActionComponent {
     public void handleLoadRequest() {
         TSDProcessor tsdprocessor = new TSDProcessor();
         lineNumber = 0;
-        loadedData = "";
+        loadedData = new StringBuffer();
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
         appUI.enableUIOnLoad();
         FileChooser fc = new FileChooser();
@@ -108,14 +108,26 @@ public final class AppActions implements ActionComponent {
                 String line;
                 while ((line = br.readLine()) != null) {
                     ++lineNumber;
-                    loadedData += (line + "\n");
+                    loadedData.append(line + "\n");
                 }
                 if (lineNumber > 10) {
-                    ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_TOO_MANY_LINES_TITLE"), lineNumber + " loaded, displaying top 10 lines");
+                    int oldLineCount = lineNumber;
+                    lineNumber = 10;
+                    loadedData.delete(0, loadedData.length());
+                    BufferedReader bufRead = new BufferedReader(new FileReader(chosenFile));
+                    String curLine;
+                    for(int i = 0; i<10; ++i){
+                        curLine = bufRead.readLine();
+                        loadedData.append(curLine + "\n");
+                    }
+                    StringBuffer tooManyLinesMessage = new StringBuffer();
+                    tooManyLinesMessage.append(oldLineCount);
+                    tooManyLinesMessage.append(applicationTemplate.manager.getPropertyValue("DATA_TOO_MANY_LINES_MESSAGE"));
+                    ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_TOO_MANY_LINES_TITLE"), tooManyLinesMessage.toString());
                     this.handlePrintRequest();
                 }
-                tsdprocessor.processString(loadedData);
-                appUI.getText().setText(loadedData);
+                tsdprocessor.processString(loadedData.toString());
+                appUI.getText().setText(loadedData.toString());
                 appUI.updateDataInfo(lineNumber, tsdprocessor.getUniqueNames().size(), chosenFile.getName(), tsdprocessor.getUniqueNames());
 
             }
@@ -123,7 +135,7 @@ public final class AppActions implements ActionComponent {
             ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
         }
         lineNumber = 0;
-        loadedData = "";
+        loadedData.delete(0, loadedData.length());
     }
 
     @Override

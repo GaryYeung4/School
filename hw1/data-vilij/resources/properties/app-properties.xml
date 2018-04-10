@@ -24,7 +24,10 @@ functionality within the main workspace. -->
         <property name="DATA_INC_FORMAT_TITLE" value="Error: Data Inputed Was in Incorrect Format"/>
         <property name="DATA_TOO_MANY_LINES_TITLE" value="Error: Too many data points"/>
         <property name="REP_DATA_MESSAGE" value="You already inputted this data"/>
-        <property name="DATA_TOO_MANY_LINES_MESSAGE" value=" loaded, displaying top 10 lines"/>
+        <property name="DATA_TOO_MANY_LINES_MESSAGE" value=" lines were loaded. This is too many, displaying top 10 lines"/>
+        
+        <!-- Algorithm Selection Text-->
+        <property name="ALGORITHM_SELECTION_PROMPT" value="Select your desired algorithm type"/>
         
         <!-- APPLICATION-SPECIFIC MESSAGE TITLES -->
         <property name="SAVE_UNSAVED_WORK_TITLE" value="Save Current Work"/>

@@ -15,14 +15,20 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javax.swing.ButtonGroup;
 import settings.AppPropertyTypes;
 import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
@@ -53,6 +59,9 @@ public final class AppUI extends UITemplate {
     private boolean hasNewText;     // whether or not the text area has any new data since last display
     private String newText = "";
     private Label dataInfo;
+    private RadioButton classButton;
+    private RadioButton clussButton;
+    private ToggleGroup algTypes;
 
     public LineChart<Number, Number> getChart() {
         return chart;
@@ -120,37 +129,61 @@ public final class AppUI extends UITemplate {
 
     private void layout() {
         newButton.setDisable(false);
+        //data
+        VBox leftSide = new VBox();
         textArea = new TextArea();
         textArea.setVisible(false);
         textArea.setDisable(true);
-        appPane.getChildren().add(textArea);
+        leftSide.getChildren().add(textArea);
         textArea.setMinHeight(220);
         doneButton = new Button("Done");
         doneButton.setVisible(false);
+        doneButton.setManaged(false);
         doneButton.setDisable(true);
-        appPane.getChildren().add(doneButton);
+        leftSide.getChildren().add(doneButton);
         editButton = new Button("Edit");
         editButton.setVisible(false);
+        editButton.setManaged(false);
         editButton.setDisable(true);
-        appPane.getChildren().add(editButton);
+        leftSide.getChildren().add(editButton);
         dataInfo = new Label();
         dataInfo.setVisible(false);
-        appPane.getChildren().add(dataInfo);
+        leftSide.getChildren().add(dataInfo);
         //algorithm section
-        
+        classButton = new RadioButton();
+        classButton.setText("Classification");
+        classButton.setVisible(false);
+        classButton.setDisable(true);
+        classButton.setManaged(false);
+        clussButton = new RadioButton();
+        clussButton.setText("Clustering");
+        clussButton.setVisible(false);
+        clussButton.setDisable(true);
+        clussButton.setManaged(false);
+        algTypes = new ToggleGroup();
+        classButton.setToggleGroup(algTypes);
+        clussButton.setToggleGroup(algTypes);
+        leftSide.getChildren().addAll(classButton, clussButton);
+        //run button
         runButton = new Button("Run");
         runButton.setVisible(false);
         runButton.setDisable(true);
-        appPane.getChildren().add(runButton);
+        leftSide.getChildren().add(runButton);
+        //chart
+        VBox rightSide = new VBox();
         NumberAxis xAxis = new NumberAxis();
         xAxis.setTickLabelFill(Color.CHOCOLATE);
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickLabelFill(Color.CHOCOLATE);
         chart = new LineChart<Number, Number>(xAxis, yAxis);
+        chart.setTitle("Data Visualization");
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
         chart.getStylesheets().add(AppUI.class.getResource("ChartUI.css").toExternalForm());
-        appPane.getChildren().add(chart);
+        rightSide.getChildren().add(chart);
+        HBox layout = new HBox();
+        layout.getChildren().addAll(leftSide, rightSide);
+        appPane.getChildren().add(layout);
 
     }
 
@@ -159,8 +192,18 @@ public final class AppUI extends UITemplate {
         runButton.setOnAction(e -> handleDisplayRequest());
         doneButton.setOnAction(e -> handleDoneRequest());
         editButton.setOnAction(e -> handleEditRequest());
+        classButton.setOnAction(e -> handleClassAlgButton());
+        clussButton.setOnAction(e -> handleClussAlgButton());
     }
-
+    
+    public void handleClassAlgButton(){
+        System.out.println("you pressed classification");
+    }
+    
+    public void handleClussAlgButton(){
+        System.out.println("you pressed clusstering ");
+    }
+    
     public void updateDataInfo(int instances, int labels, String fileName, ArrayList<String> list) {
         StringBuffer labelText = new StringBuffer();
         labelText.append(instances + " instances with " + labels + " labels loaded from " + fileName + ". The labels are:" + "\n");
@@ -170,35 +213,62 @@ public final class AppUI extends UITemplate {
         dataInfo.setVisible(true);
         dataInfo.setAlignment(Pos.TOP_LEFT);
         dataInfo.setText(labelText.toString());
-        dataInfo.setMinHeight(100);
+        dataInfo.setPrefHeight(windowHeight * .4);
+        classButton.setVisible(true);
+        classButton.setDisable(false);
+        classButton.setManaged(true);
+        clussButton.setVisible(true);
+        clussButton.setDisable(false);
+        clussButton.setManaged(true);
+        if (labels != 2) {
+            classButton.setDisable(true);
+        } else if (labels == 2) {
+            classButton.setDisable(false);
+        }
 
     }
 
     public void enableUIOnLoad() {
         dataInfo.setVisible(true);
         textArea.setVisible(true);
+        doneButton.setVisible(false);
+        doneButton.setManaged(false);
+        doneButton.setDisable(true);
+        editButton.setVisible(false);
+        editButton.setManaged(false);
+        textArea.setDisable(true);
     }
 
     public void enableUIOnNew() {
         this.enableUIOnLoad();
         doneButton.setVisible(true);
+        doneButton.setManaged(true);
+        doneButton.setDisable(false);
         editButton.setVisible(true);
+        editButton.setManaged(true);
         textArea.setDisable(false);
     }
 
-    public void handleDoneRequest() {
+    private void handleDoneRequest() {
+        TSDProcessor tsdProcessor = new TSDProcessor();
         textArea.setDisable(true);
         doneButton.setDisable(true);
         editButton.setDisable(false);
+        try {
+            tsdProcessor.processString(textArea.getText());
+        } catch (Exception e) {
+            e.getMessage();
+        }
+        this.updateDataInfo(tsdProcessor.getNameList().size(), tsdProcessor.getUniqueNames().size(), "text area", tsdProcessor.getUniqueNames());
     }
 
-    public void handleEditRequest() {
+    private void handleEditRequest() {
         textArea.setDisable(false);
         editButton.setDisable(true);
         doneButton.setDisable(false);
     }
 
-    public void handleTextRequest() {
+    private void handleTextRequest() {
         if (textArea.getText().isEmpty()) {
             saveButton.setDisable(true);
             newButton.setDisable(true);
