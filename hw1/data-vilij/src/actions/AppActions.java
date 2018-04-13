@@ -52,7 +52,7 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleNewRequest() {
-
+        TSDProcessor tsdp = new TSDProcessor();
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
         appUI.clearLeftSide();
         appUI.enableUIOnNew();
@@ -65,13 +65,19 @@ public final class AppActions implements ActionComponent {
                     appUI.disableSave();
                     sameFile = null;
                     this.setSaveState(false);
-                } else if (promptToSave()) {
-                    applicationTemplate.getUIComponent().clear();
-                    appUI.disableSave();
-                    sameFile = null;
-                    this.setSaveState(false);
                 } else {
+                    try {
+                        tsdp.processString(appUI.getText().getText());
+                        if (promptToSave()) {
 
+                            applicationTemplate.getUIComponent().clear();
+                            appUI.disableSave();
+                            sameFile = null;
+                            this.setSaveState(false);
+                        }
+                    } catch (Exception e) {
+                        ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
+                    }
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -111,25 +117,9 @@ public final class AppActions implements ActionComponent {
                     ++lineNumber;
                     loadedData.append(line + "\n");
                 }
-                if (lineNumber > 10) {
-                    int oldLineCount = lineNumber;
-                    lineNumber = 10;
-                    loadedData.delete(0, loadedData.length());
-                    BufferedReader bufRead = new BufferedReader(new FileReader(chosenFile));
-                    String curLine;
-                    for(int i = 0; i<10; ++i){
-                        curLine = bufRead.readLine();
-                        loadedData.append(curLine + "\n");
-                    }
-                    StringBuffer tooManyLinesMessage = new StringBuffer();
-                    tooManyLinesMessage.append(oldLineCount);
-                    tooManyLinesMessage.append(applicationTemplate.manager.getPropertyValue("DATA_TOO_MANY_LINES_MESSAGE"));
-                    ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_TOO_MANY_LINES_TITLE"), tooManyLinesMessage.toString());
-                    this.handlePrintRequest();
-                }
                 tsdprocessor.processString(loadedData.toString());
                 appUI.getText().setText(loadedData.toString());
-                appUI.updateDataInfo(lineNumber, tsdprocessor.getUniqueNames().size(),chosenFile.getPath(), tsdprocessor.getUniqueNames());
+                appUI.updateDataInfo(lineNumber, tsdprocessor.getUniqueNames().size(), chosenFile.getPath(), tsdprocessor.getUniqueNames());
 
             }
         } catch (Exception e) {
