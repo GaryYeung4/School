@@ -14,7 +14,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import vilij.components.ErrorDialog;
 
 /**
  *
@@ -67,7 +66,7 @@ public class ConfigScreen {
         HBox contFlag = new HBox();
         Label contDesc = new Label("Continuous Run?");
         CheckBox contCheck = new CheckBox();
-        if(this.continuous){
+        if (this.continuous) {
             contCheck.setSelected(true);
         }
         contFlag.getChildren().addAll(contDesc, contCheck);
@@ -85,6 +84,9 @@ public class ConfigScreen {
 
         Scene scene = new Scene(window);
         settings.setScene(scene);
+        settings.setOnCloseRequest(e -> {
+            this.processUserInputs(itCountResp.getText(), updateIntResp.getText(), contCheck.isSelected());
+        });
         settings.show();
     }
 
@@ -140,7 +142,7 @@ public class ConfigScreen {
         Label contDesc = new Label("Continuous Run?");
         CheckBox contCheck = new CheckBox();
         contFlag.getChildren().addAll(contDesc, contCheck);
-        if(this.continuous){
+        if (this.continuous) {
             contCheck.setSelected(true);
         }
         window.getChildren().add(contFlag);
@@ -155,6 +157,9 @@ public class ConfigScreen {
 
         Scene scene = new Scene(window);
         settings.setScene(scene);
+        settings.setOnCloseRequest(e -> {
+            this.processUserInputs(labelNumResp.getText(), itCountResp.getText(), updateIntResp.getText(), contCheck.isSelected());
+        });
         settings.show();
 
     }

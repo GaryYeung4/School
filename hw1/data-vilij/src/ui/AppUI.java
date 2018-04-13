@@ -8,23 +8,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -169,6 +165,7 @@ public final class AppUI extends UITemplate {
         randClassConfScrn = new ConfigScreen();
         randClussConfScrn = new ConfigScreen();
         leftSide.getChildren().addAll(classButton, clussButton, algList);
+        leftSide.setMaxWidth(windowWidth*.3);
         //run button
         runButton = new Button("Run");
         runButton.setVisible(false);
@@ -243,8 +240,7 @@ public final class AppUI extends UITemplate {
 
     public void updateDataInfo(int instances, int labels, String fileName, ArrayList<String> list) {
         StringBuffer labelText = new StringBuffer();
-        String[] file = fileName.split("CSE219");
-        labelText.append(instances + " instances with " + labels + " labels loaded from:" + "\n" + file[0].toString() + ". \n" + file[1].toString() + "\n The labels are:" + "\n");
+        labelText.append(instances + " instances with " + labels + " labels loaded from:" + "\n" + fileName + "\n The labels are:" + "\n");
         for (String label : list) {
             labelText.append("- " + label + "\n");
         }
@@ -255,6 +251,7 @@ public final class AppUI extends UITemplate {
         dataInfo.setVisible(true);
         dataInfo.setAlignment(Pos.TOP_LEFT);
         dataInfo.setText(dataInfoInput);
+        dataInfo.setWrapText(true);
         dataInfo.setPrefHeight(windowHeight * .25);
         classButton.setVisible(true);
         classButton.setDisable(false);
@@ -277,6 +274,24 @@ public final class AppUI extends UITemplate {
             labelText.append("- " + label + "\n");
         }
         updateDataUI(labelText.toString(), labels);
+    }
+    public void clearLeftSide(){
+        dataInfo.setText("");
+        dataInfo.setVisible(false);
+        dataInfo.setDisable(true);
+        dataInfo.setManaged(false);
+        classButton.setVisible(false);
+        classButton.setDisable(true);
+        classButton.setManaged(false);
+        clussButton.setVisible(false);
+        clussButton.setDisable(true);
+        clussButton.setManaged(false);
+        algList.setVisible(false);
+        algList.setDisable(true);
+        algList.setManaged(false);
+        runButton.setVisible(false);
+        runButton.setDisable(true);
+        runButton.setManaged(false);
     }
 
     public void enableUIOnLoad() {

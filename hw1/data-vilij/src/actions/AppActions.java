@@ -54,6 +54,7 @@ public final class AppActions implements ActionComponent {
     public void handleNewRequest() {
 
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        appUI.clearLeftSide();
         appUI.enableUIOnNew();
         if (appUI.getText().getText().isEmpty()) {
             return;

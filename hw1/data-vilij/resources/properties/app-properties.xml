@@ -14,7 +14,7 @@ functionality within the main workspace. -->
         <property name="SCREENSHOT_TOOLTIP" value="Screenshot"/> <!-- will print current view of image to a file -->
         
         <!-- Algorithm Settings Image Path -->
-        <property name="SETTING_IMAGE" value="./data-vilij/resources/images/algorithm_settings.png"/>
+        <property name="SETTING_IMAGE" value="./data-vilij/resources/gui.icons/algorithm_settings.png"/>
         
         <!-- WARNING MESSAGES -->
         <property name="EXIT_WHILE_RUNNING_WARNING"
