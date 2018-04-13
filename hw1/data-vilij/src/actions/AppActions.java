@@ -99,6 +99,7 @@ public final class AppActions implements ActionComponent {
         lineNumber = 0;
         loadedData = new StringBuffer();
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        appUI.clearLeftSide();
         appUI.enableUIOnLoad();
         FileChooser fc = new FileChooser();
         fc.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));

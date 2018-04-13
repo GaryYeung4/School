@@ -169,6 +169,7 @@ public final class AppUI extends UITemplate {
         runButton = new Button("Run");
         runButton.setVisible(false);
         runButton.setDisable(true);
+        runButton.setManaged(false);
         leftSide.getChildren().add(runButton);
         //chart
         VBox rightSide = new VBox();
@@ -200,15 +201,25 @@ public final class AppUI extends UITemplate {
     public void handleClassAlgButton() {
         algList.getChildren().remove(0, algList.getChildren().size());
         runButton.setDisable(true);
+        runButton.setVisible(false);
+        runButton.setManaged(false);
         ToggleGroup classAlgs = new ToggleGroup();
         addAlgToUI("RandomClassifier  ", classAlgs, "Classification");
+        algList.setVisible(true);
+        algList.setDisable(false);
+        algList.setManaged(true);
     }
 
     public void handleClussAlgButton() {
         algList.getChildren().remove(0, algList.getChildren().size());
         runButton.setDisable(true);
+        runButton.setVisible(false);
+        runButton.setManaged(false);
         ToggleGroup clussAlgs = new ToggleGroup();
         addAlgToUI("Random Clustering  ", clussAlgs, "Clustering");
+        algList.setVisible(true);
+        algList.setDisable(false);
+        algList.setManaged(true);
     }
 
     private void addAlgToUI(String algName, ToggleGroup group, String algType) {
@@ -218,6 +229,7 @@ public final class AppUI extends UITemplate {
         alg.setToggleGroup(group);
         alg.setOnAction(e -> {
             runButton.setVisible(true);
+            runButton.setManaged(true);
             runButton.setDisable(true);
         });
         algBox.getChildren().add(alg);
@@ -238,6 +250,20 @@ public final class AppUI extends UITemplate {
     }
 
     public void updateDataInfo(int instances, int labels, String fileName, ArrayList<String> list) {
+        classButton.setSelected(false);
+        classButton.setVisible(false);
+        classButton.setDisable(true);
+        classButton.setManaged(false);
+        clussButton.setSelected(false);
+        clussButton.setVisible(false);
+        clussButton.setDisable(true);
+        clussButton.setManaged(false);
+        algList.setVisible(false);
+        algList.setDisable(true);
+        algList.setManaged(false);
+        runButton.setVisible(false);
+        runButton.setDisable(true);
+        runButton.setManaged(false);
         StringBuffer labelText = new StringBuffer();
         labelText.append(instances + " instances with " + labels + " labels loaded from:" + "\n" + fileName + "\n The labels are:" + "\n");
         for (String label : list) {
@@ -251,7 +277,7 @@ public final class AppUI extends UITemplate {
         dataInfo.setAlignment(Pos.TOP_LEFT);
         dataInfo.setText(dataInfoInput);
         dataInfo.setWrapText(true);
-        dataInfo.setPrefHeight(windowHeight * .25);
+        dataInfo.setPrefHeight(windowHeight * .35);
         classButton.setVisible(true);
         classButton.setDisable(false);
         classButton.setManaged(true);
@@ -267,6 +293,20 @@ public final class AppUI extends UITemplate {
     }
 
     public void updateDataInfo(int instances, int labels, ArrayList<String> list) {
+        classButton.setSelected(false);
+        classButton.setVisible(false);
+        classButton.setDisable(true);
+        classButton.setManaged(false);
+        clussButton.setSelected(false);
+        clussButton.setVisible(false);
+        clussButton.setDisable(true);
+        clussButton.setManaged(false);
+        algList.setVisible(false);
+        algList.setDisable(true);
+        algList.setManaged(false);
+        runButton.setVisible(false);
+        runButton.setDisable(true);
+        runButton.setManaged(false);
         StringBuffer labelText = new StringBuffer();
         labelText.append(instances + " instances with " + labels + " label. The labels are:" + "\n");
         for (String label : list) {
@@ -279,9 +319,11 @@ public final class AppUI extends UITemplate {
         dataInfo.setVisible(false);
         dataInfo.setDisable(true);
         dataInfo.setManaged(false);
+        classButton.setSelected(false);
         classButton.setVisible(false);
         classButton.setDisable(true);
         classButton.setManaged(false);
+        clussButton.setSelected(false);
         clussButton.setVisible(false);
         clussButton.setDisable(true);
         clussButton.setManaged(false);
@@ -295,6 +337,8 @@ public final class AppUI extends UITemplate {
 
     public void enableUIOnLoad() {
         dataInfo.setVisible(true);
+        dataInfo.setDisable(false);
+        dataInfo.setManaged(true);
         textArea.setVisible(true);
         doneButton.setVisible(false);
         doneButton.setManaged(false);
