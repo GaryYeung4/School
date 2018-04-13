@@ -164,7 +164,7 @@ public final class AppUI extends UITemplate {
         randClassConfScrn = new ConfigScreen();
         randClussConfScrn = new ConfigScreen();
         leftSide.getChildren().addAll(classButton, clussButton, algList);
-        leftSide.setMaxWidth(windowWidth*.3);
+        leftSide.setMaxWidth(windowWidth * .3);
         //run button
         runButton = new Button("Run");
         runButton.setVisible(false);
@@ -314,7 +314,8 @@ public final class AppUI extends UITemplate {
         }
         updateDataUI(labelText.toString(), labels);
     }
-    public void clearLeftSide(){
+
+    public void clearLeftSide() {
         dataInfo.setText("");
         dataInfo.setVisible(false);
         dataInfo.setDisable(true);
@@ -366,7 +367,22 @@ public final class AppUI extends UITemplate {
         try {
             tsdProcessor.processString(textArea.getText());
         } catch (Exception e) {
-            e.getMessage();
+            ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
+            classButton.setSelected(false);
+            classButton.setVisible(false);
+            classButton.setDisable(true);
+            classButton.setManaged(false);
+            clussButton.setSelected(false);
+            clussButton.setVisible(false);
+            clussButton.setDisable(true);
+            clussButton.setManaged(false);
+            algList.setVisible(false);
+            algList.setDisable(true);
+            algList.setManaged(false);
+            runButton.setVisible(false);
+            runButton.setDisable(true);
+            runButton.setManaged(false);
+            return;
         }
         this.updateDataInfo(tsdProcessor.getNameList().size(), tsdProcessor.getUniqueNames().size(), tsdProcessor.getUniqueNames());
     }
