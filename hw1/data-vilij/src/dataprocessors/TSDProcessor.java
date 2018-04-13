@@ -53,14 +53,14 @@ public final class TSDProcessor {
         
     }
     public ArrayList<String> getNameList(){
-        return names;
+        return (ArrayList<String>) names.clone();
     }
     public ArrayList<Double> getXCoords() {
-        return xCoords;
+        return (ArrayList<Double>) xCoords.clone();
     }
 
     public ArrayList<Double> getYCoords() {
-        return yCoords;
+        return (ArrayList<Double>) yCoords.clone();
     }
 
     /**

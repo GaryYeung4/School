@@ -8,27 +8,26 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import javax.swing.ButtonGroup;
 import settings.AppPropertyTypes;
 import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
@@ -62,6 +61,9 @@ public final class AppUI extends UITemplate {
     private RadioButton classButton;
     private RadioButton clussButton;
     private ToggleGroup algTypes;
+    private VBox algList;
+    private ConfigScreen randClassConfScrn;
+    private ConfigScreen randClussConfScrn;
 
     public LineChart<Number, Number> getChart() {
         return chart;
@@ -135,7 +137,7 @@ public final class AppUI extends UITemplate {
         textArea.setVisible(false);
         textArea.setDisable(true);
         leftSide.getChildren().add(textArea);
-        textArea.setMinHeight(220);
+        textArea.setMinHeight(windowWidth * .2);
         doneButton = new Button("Done");
         doneButton.setVisible(false);
         doneButton.setManaged(false);
@@ -163,7 +165,10 @@ public final class AppUI extends UITemplate {
         algTypes = new ToggleGroup();
         classButton.setToggleGroup(algTypes);
         clussButton.setToggleGroup(algTypes);
-        leftSide.getChildren().addAll(classButton, clussButton);
+        algList = new VBox();
+        randClassConfScrn = new ConfigScreen();
+        randClussConfScrn = new ConfigScreen();
+        leftSide.getChildren().addAll(classButton, clussButton, algList);
         //run button
         runButton = new Button("Run");
         runButton.setVisible(false);
@@ -195,25 +200,62 @@ public final class AppUI extends UITemplate {
         classButton.setOnAction(e -> handleClassAlgButton());
         clussButton.setOnAction(e -> handleClussAlgButton());
     }
-    
-    public void handleClassAlgButton(){
-        System.out.println("you pressed classification");
+
+    public void handleClassAlgButton() {
+        algList.getChildren().remove(0, algList.getChildren().size());
+        runButton.setDisable(true);
+        ToggleGroup classAlgs = new ToggleGroup();
+        addAlgToUI("RandomClassifier  ", classAlgs, "Classification");
     }
-    
-    public void handleClussAlgButton(){
-        System.out.println("you pressed clusstering ");
+
+    public void handleClussAlgButton() {
+        algList.getChildren().remove(0, algList.getChildren().size());
+        runButton.setDisable(true);
+        ToggleGroup clussAlgs = new ToggleGroup();
+        addAlgToUI("Random Clustering  ", clussAlgs, "Clustering");
     }
-    
+
+    private void addAlgToUI(String algName, ToggleGroup group, String algType) {
+        HBox algBox = new HBox();
+        RadioButton alg = new RadioButton();
+        alg.setText(algName);
+        alg.setToggleGroup(group);
+        alg.setOnAction(e -> {
+            runButton.setVisible(true);
+            runButton.setDisable(true);
+        });
+        algBox.getChildren().add(alg);
+        Button randClassSettings = new Button("Config");
+        algBox.getChildren().add(randClassSettings);
+        if (algType.equals("Classification")) {
+            randClassSettings.setOnAction(e -> {
+                randClassConfScrn.showClassSettings();
+                runButton.setDisable(false);
+            });
+        } else if (algType.equals("Clustering")) {
+            randClassSettings.setOnAction(e -> {
+                randClussConfScrn.showClusSettings();
+                runButton.setDisable(false);
+            });
+        }
+        algList.getChildren().add(algBox);
+    }
+
     public void updateDataInfo(int instances, int labels, String fileName, ArrayList<String> list) {
         StringBuffer labelText = new StringBuffer();
-        labelText.append(instances + " instances with " + labels + " labels loaded from " + fileName + ". The labels are:" + "\n");
+        String[] file = fileName.split("CSE219");
+        labelText.append(instances + " instances with " + labels + " labels loaded from:" + "\n" + file[0].toString() + ". \n" + file[1].toString() + "\n The labels are:" + "\n");
         for (String label : list) {
             labelText.append("- " + label + "\n");
         }
+        updateDataUI(labelText.toString(), labels);
+    }
+
+    private void updateDataUI(String dataInfoInput, int labels) {
         dataInfo.setVisible(true);
         dataInfo.setAlignment(Pos.TOP_LEFT);
-        dataInfo.setText(labelText.toString());
-        dataInfo.setPrefHeight(windowHeight * .4);
+        dataInfo.setText(dataInfoInput);
+        dataInfo.setPrefHeight(windowHeight * .25);
         classButton.setVisible(true);
         classButton.setDisable(false);
         classButton.setManaged(true);
@@ -226,6 +268,15 @@ public final class AppUI extends UITemplate {
             classButton.setDisable(false);
         }
 
+    }
+
+    public void updateDataInfo(int instances, int labels, ArrayList<String> list) {
+        StringBuffer labelText = new StringBuffer();
+        labelText.append(instances + " instances with " + labels + " label. The labels are:" + "\n");
+        for (String label : list) {
+            labelText.append("- " + label + "\n");
+        }
+        updateDataUI(labelText.toString(), labels);
     }
 
     public void enableUIOnLoad() {
@@ -259,7 +310,7 @@ public final class AppUI extends UITemplate {
         } catch (Exception e) {
             e.getMessage();
         }
-        this.updateDataInfo(tsdProcessor.getNameList().size(), tsdProcessor.getUniqueNames().size(), "text area", tsdProcessor.getUniqueNames());
+        this.updateDataInfo(tsdProcessor.getNameList().size(), tsdProcessor.getUniqueNames().size(), tsdProcessor.getUniqueNames());
     }
 
     private void handleEditRequest() {

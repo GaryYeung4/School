@@ -14,7 +14,11 @@ public enum AppPropertyTypes {
 
     //line name
     AVG_LINE_NAME,
-
+    
+    
+    // algorithm setting image
+    SETTING_IMAGE,
+    
     /* resource files and folders */
     DATA_RESOURCE_PATH,
 

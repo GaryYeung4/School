@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package algorithm;
+package classification;
 
 /**
  *
- * @author garyy
+ * @author Gary Yeung and Ritwik Banerjee
  */
 import algorithm.Classifier;
 import algorithm.DataSet;
@@ -18,9 +18,6 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * @author Ritwik Banerjee
- */
 public class RandomClassifier extends Classifier {
 
     private static final Random RAND = new Random();

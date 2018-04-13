@@ -128,7 +128,7 @@ public final class AppActions implements ActionComponent {
                 }
                 tsdprocessor.processString(loadedData.toString());
                 appUI.getText().setText(loadedData.toString());
-                appUI.updateDataInfo(lineNumber, tsdprocessor.getUniqueNames().size(), chosenFile.getName(), tsdprocessor.getUniqueNames());
+                appUI.updateDataInfo(lineNumber, tsdprocessor.getUniqueNames().size(),chosenFile.getPath(), tsdprocessor.getUniqueNames());
 
             }
         } catch (Exception e) {
