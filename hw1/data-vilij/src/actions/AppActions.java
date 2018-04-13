@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
 import java.io.IOException;
-import java.util.ArrayList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
@@ -52,7 +51,6 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleNewRequest() {
-        TSDProcessor tsdp = new TSDProcessor();
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
         appUI.clearLeftSide();
         appUI.enableUIOnNew();
@@ -67,7 +65,6 @@ public final class AppActions implements ActionComponent {
                     this.setSaveState(false);
                 } else {
                     try {
-                        tsdp.processString(appUI.getText().getText());
                         if (promptToSave()) {
 
                             applicationTemplate.getUIComponent().clear();
@@ -87,10 +84,8 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleSaveRequest() {
-        TSDProcessor tsdprocessor = new TSDProcessor();
         AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
         try {
-            tsdprocessor.processString(appUI.getText().getText());
             this.promptToSave();
         } catch (Exception e) {
             appUI.disableSave();
@@ -189,6 +184,15 @@ public final class AppActions implements ActionComponent {
                 return false;
             }
             if (userResponse == YES) {
+                TSDProcessor tsdp = new TSDProcessor();
+                try {
+                    tsdp.processString(appUI.getText().getText());
+                } catch (Exception e) {
+                    appUI.disableSave();
+                    ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
+                    this.setSaveState(false);
+                    return false;
+                }
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setInitialDirectory(new File(applicationTemplate.manager.getPropertyValue("DATA_RESOURCE_PATH")));
                 fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT_DESC"), applicationTemplate.manager.getPropertyValue("DATA_FILE_EXT")));
