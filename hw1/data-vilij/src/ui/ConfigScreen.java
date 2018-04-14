@@ -187,7 +187,7 @@ public class ConfigScreen {
     private void processUserInputs(String labelNum, String itCount, String updateInt, boolean cont) {
         try {
             this.labelCount = Integer.parseInt(labelNum);
-            if (Integer.parseInt(itCount) < 0) {
+            if (Integer.parseInt(labelNum) < 0) {
                 this.labelCount = 1;
             }
         } catch (Exception e) {
