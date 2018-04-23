@@ -52,6 +52,12 @@ public final class TSDProcessor {
         labels = new ArrayList<>();
         
     }
+    public Map<String,String> getDataLabels(){
+        return dataLabels;
+    }
+    public Map<String,Point2D> getDataPoints(){
+        return dataPoints;
+    }
     public ArrayList<String> getNameList(){
         return (ArrayList<String>) names.clone();
     }
