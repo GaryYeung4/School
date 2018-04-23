@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -56,9 +57,9 @@ public class DataSet {
     private Map<String, Point2D> locations;
 
     /** Creates an empty dataset. */
-    public DataSet() {
-        labels = new HashMap<>();
-        locations = new HashMap<>();
+    public DataSet(Map<String,String> labels, Map<String, Point2D> location) {
+        this.labels = labels;
+        this.locations = location;
     }
 
     public Map<String, String> getLabels()     { return labels; }
@@ -78,7 +79,9 @@ public class DataSet {
     }
 
     public static DataSet fromTSDFile(Path tsdFilePath) throws IOException {
-        DataSet dataset = new DataSet();
+        Map<String,String> labels = new LinkedHashMap<>();
+        Map<String,Point2D> location = new LinkedHashMap<>();
+        DataSet dataset = new DataSet(labels, location);
         Files.lines(tsdFilePath).forEach(line -> {
             try {
                 dataset.addInstance(line);
