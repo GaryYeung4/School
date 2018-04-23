@@ -13,12 +13,15 @@ functionality within the main workspace. -->
         <!-- TOOLTIPS FOR BUTTONS -->
         <property name="SCREENSHOT_TOOLTIP" value="Screenshot"/> <!-- will print current view of image to a file -->
         
-        <!-- Algorithm Settings Image Path -->
-        <property name="SETTING_IMAGE" value="./data-vilij/resources/gui.icons/algorithm_settings.png"/>
+        <!-- Algorithm Finished Window -->
+        <property name="FINISHED_ALG_TITLE" value="Done"/>
+        <property name="FINISHED_ALG_HEADER" value="Algorithm Finished"/>
+        <property name="FINISHED_ALG_CONTENT" value="Algorithm has finished it's computation"/>
         
         <!-- WARNING MESSAGES -->
         <property name="EXIT_WHILE_RUNNING_WARNING"
                   value="An algorithm is running. If you exit now, all unsaved changes will be lost. Are you sure?"/>
+        
 
         <!-- ERROR MESSAGES -->
         <property name="RESOURCE_SUBDIR_NOT_FOUND" value="Directory not found under resources."/>
