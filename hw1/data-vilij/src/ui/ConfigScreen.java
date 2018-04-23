@@ -167,7 +167,7 @@ public class ConfigScreen {
     private void processUserInputs(String itCount, String updateInt, boolean cont) {
         try {
             this.iterationCount = Integer.parseInt(itCount);
-            if (Integer.parseInt(itCount) < 0) {
+            if (Integer.parseInt(itCount) <= 0) {
                 this.iterationCount = 1;
             }
         } catch (Exception e) {
@@ -175,7 +175,7 @@ public class ConfigScreen {
         }
         try {
             this.updateInterval = Integer.parseInt(updateInt);
-            if (Integer.parseInt(updateInt) < 0) {
+            if (Integer.parseInt(updateInt) <= 0) {
                 this.updateInterval = 1;
             }
         } catch (Exception e) {
@@ -187,7 +187,7 @@ public class ConfigScreen {
     private void processUserInputs(String labelNum, String itCount, String updateInt, boolean cont) {
         try {
             this.labelCount = Integer.parseInt(labelNum);
-            if (Integer.parseInt(labelNum) < 0) {
+            if (Integer.parseInt(labelNum) <= 0) {
                 this.labelCount = 1;
             }
         } catch (Exception e) {
