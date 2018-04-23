@@ -27,6 +27,22 @@ public class ConfigScreen {
     private int labelCount;
     private Stage settings;
     private VBox window;
+    
+    public int getIterationCount(){
+        return iterationCount;
+    }
+    
+    public int getUpdateInterval(){
+        return updateInterval;
+    }
+    
+    public boolean getContinueState(){
+        return continuous;
+    }
+    
+    public int getLabelCount(){
+        return labelCount;
+    }
 
     public void showClassSettings() {
         settings = new Stage();
