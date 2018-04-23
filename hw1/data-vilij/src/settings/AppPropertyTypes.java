@@ -9,8 +9,10 @@ package settings;
  */
 public enum AppPropertyTypes {
     
-    //Algorithm Selection Text
-    ALGORITHM_SELECTION_PROMPT,
+    //Algorithm Finished Text
+    FINISHED_ALG_TITLE,
+    FINISHED_ALG_HEADER,
+    FINISHED_ALG_CONTENT,
 
     //line name
     AVG_LINE_NAME,
