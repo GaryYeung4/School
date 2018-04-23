@@ -2,17 +2,25 @@
 package ui;
 
 import actions.AppActions;
+import algorithm.DataSet;
+import classification.RandomClassifier;
 import dataprocessors.TSDProcessor;
 import static java.io.File.separator;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -58,7 +66,9 @@ public final class AppUI extends UITemplate {
     private ToggleGroup algTypes;
     private VBox algList;
     private ConfigScreen randClassConfScrn;
+    private RandomClassifier randClass;
     private ConfigScreen randClussConfScrn;
+    private int runCount;
 
     public LineChart<Number, Number> getChart() {
         return chart;
@@ -177,7 +187,7 @@ public final class AppUI extends UITemplate {
         xAxis.setTickLabelFill(Color.CHOCOLATE);
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickLabelFill(Color.CHOCOLATE);
-        chart = new LineChart<Number, Number>(xAxis, yAxis);
+        chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle("Data Visualization");
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
@@ -191,7 +201,7 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         textArea.setOnKeyTyped(e -> handleTextRequest());
-        runButton.setOnAction(e -> handleDisplayRequest());
+        runButton.setOnAction(e -> handleRunRequest());
         doneButton.setOnAction(e -> handleDoneRequest());
         editButton.setOnAction(e -> handleEditRequest());
         classButton.setOnAction(e -> handleClassAlgButton());
@@ -404,12 +414,13 @@ public final class AppUI extends UITemplate {
         }
     }
 
-    private void addAverageLine(TSDProcessor tsdProcessor) {
-        ArrayList<Double> xCoords = tsdProcessor.getXCoords();
-        ArrayList<Double> yCoords = tsdProcessor.getYCoords();
+    public void addClassifLine(TSDProcessor tsdprocessor, ArrayList<Integer> outputs) {
+        ArrayList<Double> xCoords = tsdprocessor.getXCoords();
+        ArrayList<Double> yCoords = tsdprocessor.getYCoords();
         double smallestX = xCoords.get(0);
         double largestX = xCoords.get(0);
-        double avgY = yCoords.get(0);
+        double newSmallY = yCoords.get(0);
+        double newLargeY = yCoords.get(0);
         for (int i = 0; i < xCoords.size(); ++i) {
             double currVal = xCoords.get(i);
             if (smallestX > currVal) {
@@ -419,16 +430,18 @@ public final class AppUI extends UITemplate {
                 largestX = currVal;
             }
         }
-        for (int i = 1; i < yCoords.size(); ++i) {
-            avgY += yCoords.get(i);
-        }
-        avgY = avgY / yCoords.size();
+        newSmallY = ((outputs.get(2)) - (outputs.get(0) * smallestX)) / outputs.get(1);
+        newLargeY = ((outputs.get(2)) - (outputs.get(0) * largestX)) / outputs.get(1);
+        System.out.println("A value is " + outputs.get(0) + "B value is " + outputs.get(1) + "C value is " + outputs.get(2) + "x and y are " + smallestX + " " + newSmallY);
+        System.out.println("Larger side is " + largestX + " " + newLargeY);
         XYChart.Series avg = new XYChart.Series<>();
-        XYChart.Data<Number, Number> firstPoint = new XYChart.Data<>(smallestX, avgY);
-        XYChart.Data<Number, Number> secondPoint = new XYChart.Data<>(largestX, avgY);
+        XYChart.Data<Number, Number> firstPoint = new XYChart.Data<>(smallestX, newSmallY);
+        XYChart.Data<Number, Number> secondPoint = new XYChart.Data<>(largestX, newLargeY);
         avg.getData().add(firstPoint);
         avg.getData().add(secondPoint);
-        avg.setName(applicationTemplate.manager.getPropertyValue("AVG_LINE_NAME"));
+        avg.setName("Classification Line");
+        Predicate<XYChart.Series> chartPredicate = (XYChart.Series s) -> s.getName().equals("Classification Line");
+        chart.getData().removeIf(chartPredicate);
         chart.getData().add(avg);
         avg.getNode().getStyleClass().add("avg");
         firstPoint.getNode().setVisible(false);
@@ -455,33 +468,100 @@ public final class AppUI extends UITemplate {
         }
     }
 
-    private void handleDisplayRequest() {
-        scrnshotButton.setDisable(false);
+    private void handleRunRequest() {
+        scrnshotButton.setDisable(true);
         String userInput = textArea.getText();
         if (newText.compareTo(userInput) == 0) {
             hasNewText = false;
         } else {
             hasNewText = true;
         }
+        /*
         if (!hasNewText) {
             ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("REP_DATA_TITLE"), applicationTemplate.manager.getPropertyValue("REP_DATA_MESSAGE"));
 
         } else {
-            newText = userInput;
+         */
+        newText = userInput;
+        chart.getData().clear();
+        TSDProcessor tsdProcessor = new TSDProcessor();
+        try {
+            tsdProcessor.processString(userInput);
+            DataSet dataSet = new DataSet(tsdProcessor.getDataLabels(), tsdProcessor.getDataPoints());
+            randClass = new RandomClassifier(dataSet, randClassConfScrn.getIterationCount(), randClassConfScrn.getUpdateInterval(), randClassConfScrn.getContinueState());
+            tsdProcessor.toChartData(chart);
+            if (randClassConfScrn.getContinueState()) {
+                this.runContAlgorithm(tsdProcessor);
+            } else {
+                this.runNotContAlgorithm(tsdProcessor);
+            }
+            this.addNodeListeners();
+        } catch (Exception e) {
+            e.printStackTrace();
+            saveButton.setDisable(true);
             chart.getData().clear();
-            TSDProcessor tsdProcessor = new TSDProcessor();
-            try {
-                tsdProcessor.processString(userInput);
-                tsdProcessor.toChartData(chart);
-                this.addNodeListeners();
-                this.addAverageLine(tsdProcessor);
-            } catch (Exception e) {
-                e.printStackTrace();
-                saveButton.setDisable(true);
-                chart.getData().clear();
-                ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
+            ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
+        }
+
+    }
+
+    private void runNotContAlgorithm(TSDProcessor tsdp) {
+        ++runCount;
+        scrnshotButton.setDisable(false);
+        randClass.run();
+        ArrayList<Integer> output = randClass.getDataOutput();
+        this.addClassifLine(tsdp, output);
+        if ((runCount * randClassConfScrn.getUpdateInterval()) >= randClassConfScrn.getIterationCount()) {
+            runCount = 0;
+            this.algorithmFinished();
+        }
+
+    }
+
+    private void algorithmFinished() {
+        scrnshotButton.setDisable(false);
+        classButton.setSelected(false);
+        clussButton.setSelected(false);
+        algList.setVisible(false);
+        algList.setDisable(true);
+        algList.setManaged(false);
+        runButton.setVisible(false);
+        runButton.setDisable(true);
+        runButton.setManaged(false);
+        Alert algDone = new Alert(AlertType.INFORMATION);
+        algDone.setTitle(applicationTemplate.manager.getPropertyValue("FINISHED_ALG_TITLE"));
+        algDone.setHeaderText(applicationTemplate.manager.getPropertyValue("FINISHED_ALG_HEADER"));
+        algDone.setContentText(applicationTemplate.manager.getPropertyValue("FINISHED_ALG_CONTENT"));
+        algDone.showAndWait();
+
+    }
+
+    private void runContAlgorithm(TSDProcessor tsdp) {
+        Random RAND = new Random();
+        for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
+            randClass.run();
+            if (i % randClassConfScrn.getUpdateInterval() == 0) {
+                System.out.printf("Iteration number %d: ", i);
+                ArrayList<Integer> output = randClass.getDataOutput();
+                this.addClassifLine(tsdp, output);
+                /*try {
+                    this.wait(1000);
+                    //add line to the display chart
+                    // if continuous is checked, pause the algorithm and enable scrnshot button
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                 */
+            }
+            if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
+                System.out.printf("Iteration number %d: ", i);
+                ArrayList<Integer> output = randClass.getDataOutput();
+                this.addClassifLine(tsdp, output);
+                break;
             }
         }
+        this.algorithmFinished();
+
     }
 
     public void disableSave() {
