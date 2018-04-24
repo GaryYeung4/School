@@ -477,12 +477,6 @@ public final class AppUI extends UITemplate {
         } else {
             hasNewText = true;
         }
-        /*
-        if (!hasNewText) {
-            ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("REP_DATA_TITLE"), applicationTemplate.manager.getPropertyValue("REP_DATA_MESSAGE"));
-
-        } else {
-         */
         newText = userInput;
         chart.getData().clear();
         TSDProcessor tsdProcessor = new TSDProcessor();
@@ -531,11 +525,12 @@ public final class AppUI extends UITemplate {
                 });
                 algRunner.start();
             } else {
-                this.runNotContAlgorithm(tsdProcessor);
+                this.runNotContAlgorithm(tsdProcessor);   
+                scrnshotButton.setDisable(false);
             }
             this.addNodeListeners();
         } catch (Exception e) {
-            saveButton.setDisable(true);
+            saveButton.setDisable(false);
             chart.getData().clear();
             ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
         }
@@ -543,24 +538,31 @@ public final class AppUI extends UITemplate {
     }
 
     private void runNotContAlgorithm(TSDProcessor tsdp) {
+        
+        Thread disableScrnShot = new Thread(() -> scrnshotButton.setDisable(true));
+        disableScrnShot.run();
+        chart.setAnimated(false);
         ++runCount;
-        Platform.runLater(() -> {
-            try {
-                Thread.sleep(randClassConfScrn.getUpdateInterval() * 20);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        });
-        runButton.setText("Continue");
-        scrnshotButton.setDisable(false);
-        randClass.run();
-        ArrayList<Integer> output = randClass.getDataOutput();
-        this.addClassifLine(tsdp, output);
-        if ((runCount * randClassConfScrn.getUpdateInterval()) >= randClassConfScrn.getIterationCount()) {
-            runCount = 0;
-            runButton.setText("Run");
-            this.algorithmFinished();
+        try {
+            scrnshotButton.setDisable(true);
+            Thread.sleep(randClassConfScrn.getUpdateInterval() * 20);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
         }
+        Thread algRunner = new Thread(() -> {
+            Platform.runLater(() -> {
+                runButton.setText("Continue");
+                randClass.run();
+                ArrayList<Integer> output = randClass.getDataOutput();
+                this.addClassifLine(tsdp, output);
+                if ((runCount * randClassConfScrn.getUpdateInterval()) >= randClassConfScrn.getIterationCount()) {
+                    runCount = 0;
+                    runButton.setText("Run");
+                }
+                
+            });
+        });
+        algRunner.start();
 
     }
 
@@ -581,7 +583,6 @@ public final class AppUI extends UITemplate {
         algDone.showAndWait();
 
     }
-
 
     public void disableSave() {
         saveButton.setDisable(true);
