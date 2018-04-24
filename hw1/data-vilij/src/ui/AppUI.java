@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.chart.LineChart;
@@ -491,7 +492,48 @@ public final class AppUI extends UITemplate {
             randClass = new RandomClassifier(dataSet, randClassConfScrn.getIterationCount(), randClassConfScrn.getUpdateInterval(), randClassConfScrn.getContinueState());
             tsdProcessor.toChartData(chart);
             if (randClassConfScrn.getContinueState()) {
-                this.runContAlgorithm(tsdProcessor);
+                    Thread algRunner = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            chart.setAnimated(false);
+                            Random RAND = new Random();
+                            for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
+                                if (i % randClassConfScrn.getUpdateInterval() == 0) {
+                                    System.out.printf("Iteration number %d: ", i);
+                                    XYChart.Data<Number, Number> test = new XYChart.Data<>(i,i);
+                                    XYChart.Series<Number, Number> dummy = new XYChart.Series<>();
+                                    dummy.getData().add(test);
+                                    System.out.println(dummy.toString() + test.toString());
+                                    Platform.runLater(() -> {
+                                        //chart.getData().add(dummy);
+                                        randClass.run();
+                                        ArrayList<Integer> output = randClass.getDataOutput();
+                                        addClassifLine(tsdProcessor, output);
+                                    });
+                                    
+                                    //randClass.run();
+                                    //ArrayList<Integer> output = randClass.getDataOutput();
+                                    //addClassifLine(tsdProcessor, output);
+                                }
+                                if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
+                                    System.out.printf("Iteration number %d: ", i);
+                                    //randClass.run();
+                                    //ArrayList<Integer> output = randClass.getDataOutput();
+                                    //addClassifLine(tsdProcessor, output);
+                                    break;
+                                }
+                                if (i < (randClassConfScrn.getIterationCount()) - 1) {
+                                    try {
+                                        Thread.sleep(20);
+                                    } catch (InterruptedException ex) {
+                                        Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    algRunner.start();
+                    this.algorithmFinished();
             } else {
                 this.runNotContAlgorithm(tsdProcessor);
             }
@@ -537,30 +579,11 @@ public final class AppUI extends UITemplate {
     }
 
     private void runContAlgorithm(TSDProcessor tsdp) {
-        Random RAND = new Random();
-        for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
-            randClass.run();
-            if (i % randClassConfScrn.getUpdateInterval() == 0) {
-                System.out.printf("Iteration number %d: ", i);
-                ArrayList<Integer> output = randClass.getDataOutput();
-                this.addClassifLine(tsdp, output);
-                /*try {
-                    this.wait(1000);
-                    //add line to the display chart
-                    // if continuous is checked, pause the algorithm and enable scrnshot button
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                 */
-            }
-            if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
-                System.out.printf("Iteration number %d: ", i);
-                ArrayList<Integer> output = randClass.getDataOutput();
-                this.addClassifLine(tsdp, output);
-                break;
-            }
-        }
-        this.algorithmFinished();
+        randClass.run();
+        ArrayList<Integer> output = randClass.getDataOutput();
+        this.addClassifLine(tsdp, output);
+       
+        
 
     }
 
