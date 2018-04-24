@@ -492,54 +492,49 @@ public final class AppUI extends UITemplate {
             randClass = new RandomClassifier(dataSet, randClassConfScrn.getIterationCount(), randClassConfScrn.getUpdateInterval(), randClassConfScrn.getContinueState());
             tsdProcessor.toChartData(chart);
             if (randClassConfScrn.getContinueState()) {
-                    Thread algRunner = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            chart.setAnimated(false);
-                            Random RAND = new Random();
-                            for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
-                                if (i % randClassConfScrn.getUpdateInterval() == 0) {
-                                    System.out.printf("Iteration number %d: ", i);
-                                    XYChart.Data<Number, Number> test = new XYChart.Data<>(i,i);
-                                    XYChart.Series<Number, Number> dummy = new XYChart.Series<>();
-                                    dummy.getData().add(test);
-                                    System.out.println(dummy.toString() + test.toString());
-                                    Platform.runLater(() -> {
-                                        //chart.getData().add(dummy);
-                                        randClass.run();
-                                        ArrayList<Integer> output = randClass.getDataOutput();
-                                        addClassifLine(tsdProcessor, output);
-                                    });
-                                    
-                                    //randClass.run();
-                                    //ArrayList<Integer> output = randClass.getDataOutput();
-                                    //addClassifLine(tsdProcessor, output);
-                                }
-                                if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
-                                    System.out.printf("Iteration number %d: ", i);
-                                    //randClass.run();
-                                    //ArrayList<Integer> output = randClass.getDataOutput();
-                                    //addClassifLine(tsdProcessor, output);
-                                    break;
-                                }
-                                if (i < (randClassConfScrn.getIterationCount()) - 1) {
-                                    try {
-                                        Thread.sleep(20);
-                                    } catch (InterruptedException ex) {
-                                        Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                }
+                runButton.setDisable(true);
+                Thread algRunner = new Thread(() -> {
+                    chart.setAnimated(false);
+                    Random RAND = new Random();
+                    for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
+                        if (i % randClassConfScrn.getUpdateInterval() == 0) {
+                            Platform.runLater(() -> {
+                                randClass.run();
+                                ArrayList<Integer> output = randClass.getDataOutput();
+                                addClassifLine(tsdProcessor, output);
+                            });
+                        }
+                        if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
+                            Platform.runLater(() -> {
+                                randClass.run();
+                                ArrayList<Integer> output = randClass.getDataOutput();
+                                addClassifLine(tsdProcessor, output);
+                            });
+                            break;
+                        }
+                        if (i < (randClassConfScrn.getIterationCount()) - 1) {
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         }
+                        try {
+                            Thread.sleep(2);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    Platform.runLater(() -> {
+                        algorithmFinished();
                     });
-                    algRunner.start();
-                    this.algorithmFinished();
+                });
+                algRunner.start();
             } else {
                 this.runNotContAlgorithm(tsdProcessor);
             }
             this.addNodeListeners();
         } catch (Exception e) {
-            e.printStackTrace();
             saveButton.setDisable(true);
             chart.getData().clear();
             ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
@@ -549,12 +544,21 @@ public final class AppUI extends UITemplate {
 
     private void runNotContAlgorithm(TSDProcessor tsdp) {
         ++runCount;
+        Platform.runLater(() -> {
+            try {
+                Thread.sleep(randClassConfScrn.getUpdateInterval() * 20);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        runButton.setText("Continue");
         scrnshotButton.setDisable(false);
         randClass.run();
         ArrayList<Integer> output = randClass.getDataOutput();
         this.addClassifLine(tsdp, output);
         if ((runCount * randClassConfScrn.getUpdateInterval()) >= randClassConfScrn.getIterationCount()) {
             runCount = 0;
+            runButton.setText("Run");
             this.algorithmFinished();
         }
 
@@ -578,14 +582,6 @@ public final class AppUI extends UITemplate {
 
     }
 
-    private void runContAlgorithm(TSDProcessor tsdp) {
-        randClass.run();
-        ArrayList<Integer> output = randClass.getDataOutput();
-        this.addClassifLine(tsdp, output);
-       
-        
-
-    }
 
     public void disableSave() {
         saveButton.setDisable(true);
