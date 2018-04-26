@@ -13,6 +13,10 @@ public enum AppPropertyTypes {
     FINISHED_ALG_TITLE,
     FINISHED_ALG_HEADER,
     FINISHED_ALG_CONTENT,
+    
+    //Closing program while algorithm is running
+    EXIT_WHILE_RUNNING_WARNING_TITLE,
+    EXIT_WHILE_RUNNING_WARNING,
 
     //line name
     AVG_LINE_NAME,

@@ -35,7 +35,6 @@ public class RandomClassifier extends Classifier {
 
     // currently, this value does not change after instantiation
     private final AtomicBoolean tocontinue;
-    private Class AppUI;
 
     @Override
     public int getMaxIterations() {
@@ -68,15 +67,15 @@ public class RandomClassifier extends Classifier {
 
     @Override
     public void run() {
-        int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-        int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-        int constantVal = new Double(RAND.nextDouble() * 100).intValue();
+        int xCoefficient = new Long(-1 * Math.round((2 * RAND.nextDouble() - 1) * 10)).intValue();
+        int yCoefficient = 10;
+        int constant = RAND.nextInt(11);
         // this is the real output of the classifier
 
         output = (List<Integer>) new ArrayList<Integer>();
         Integer xCoeff = new Integer(xCoefficient);
         Integer yCoeff = new Integer(yCoefficient);
-        Integer constantValue = new Integer(constantVal);
+        Integer constantValue = new Integer(constant);
         output.add(xCoeff);
         output.add(yCoeff);
         output.add(constantValue);

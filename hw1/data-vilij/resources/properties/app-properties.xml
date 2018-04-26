@@ -21,6 +21,7 @@ functionality within the main workspace. -->
         <!-- WARNING MESSAGES -->
         <property name="EXIT_WHILE_RUNNING_WARNING"
                   value="An algorithm is running. If you exit now, all unsaved changes will be lost. Are you sure?"/>
+        <property name="EXIT_WHILE_RUNNING_WARNING_TITLE" value="Algorithm is still running."/>
         
 
         <!-- ERROR MESSAGES -->

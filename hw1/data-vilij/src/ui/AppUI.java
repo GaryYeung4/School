@@ -70,6 +70,7 @@ public final class AppUI extends UITemplate {
     private RandomClassifier randClass;
     private ConfigScreen randClussConfScrn;
     private int runCount;
+    private boolean algRunning;
 
     public LineChart<Number, Number> getChart() {
         return chart;
@@ -176,6 +177,7 @@ public final class AppUI extends UITemplate {
         randClussConfScrn = new ConfigScreen();
         leftSide.getChildren().addAll(classButton, clussButton, algList);
         leftSide.setMaxWidth(windowWidth * .3);
+        algRunning = false;
         //run button
         runButton = new Button("Run");
         runButton.setVisible(false);
@@ -193,6 +195,7 @@ public final class AppUI extends UITemplate {
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
         chart.getStylesheets().add(AppUI.class.getResource("ChartUI.css").toExternalForm());
+        chart.setAnimated(false);
         rightSide.getChildren().add(chart);
         HBox layout = new HBox();
         layout.getChildren().addAll(leftSide, rightSide);
@@ -488,7 +491,7 @@ public final class AppUI extends UITemplate {
             if (randClassConfScrn.getContinueState()) {
                 runButton.setDisable(true);
                 Thread algRunner = new Thread(() -> {
-                    chart.setAnimated(false);
+                    algRunning = true;
                     Random RAND = new Random();
                     for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
                         if (i % randClassConfScrn.getUpdateInterval() == 0) {
@@ -508,15 +511,10 @@ public final class AppUI extends UITemplate {
                         }
                         if (i < (randClassConfScrn.getIterationCount()) - 1) {
                             try {
-                                Thread.sleep(200);
+                                Thread.sleep(50);
                             } catch (InterruptedException ex) {
                                 Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                        }
-                        try {
-                            Thread.sleep(2);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
                     Platform.runLater(() -> {
@@ -525,8 +523,9 @@ public final class AppUI extends UITemplate {
                 });
                 algRunner.start();
             } else {
-                this.runNotContAlgorithm(tsdProcessor);   
-                scrnshotButton.setDisable(false);
+                algRunning = true;
+                scrnshotButton.setDisable(true);
+                this.runNotContAlgorithm(tsdProcessor);
             }
             this.addNodeListeners();
         } catch (Exception e) {
@@ -538,35 +537,33 @@ public final class AppUI extends UITemplate {
     }
 
     private void runNotContAlgorithm(TSDProcessor tsdp) {
-        
-        Thread disableScrnShot = new Thread(() -> scrnshotButton.setDisable(true));
-        disableScrnShot.run();
-        chart.setAnimated(false);
         ++runCount;
-        try {
-            scrnshotButton.setDisable(true);
-            Thread.sleep(randClassConfScrn.getUpdateInterval() * 20);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        Thread algRunner = new Thread(() -> {
-            Platform.runLater(() -> {
-                runButton.setText("Continue");
-                randClass.run();
-                ArrayList<Integer> output = randClass.getDataOutput();
-                this.addClassifLine(tsdp, output);
-                if ((runCount * randClassConfScrn.getUpdateInterval()) >= randClassConfScrn.getIterationCount()) {
-                    runCount = 0;
-                    runButton.setText("Run");
-                }
-                
-            });
+        Thread algRunner = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    runButton.setText("Continue");
+                    randClass.run();
+                    ArrayList<Integer> output = randClass.getDataOutput();
+                    addClassifLine(tsdp, output);
+
+                    scrnshotButton.setDisable(false);
+                    if ((runCount * randClassConfScrn.getUpdateInterval()) >= randClassConfScrn.getIterationCount()) {
+                        runCount = 0;
+                        runButton.setText("Run");
+                        Platform.runLater(() -> {
+                            algorithmFinished();
+                        });
+                    }
+
+                });
+            }
         });
         algRunner.start();
-
     }
 
     private void algorithmFinished() {
+        algRunning = false;
         scrnshotButton.setDisable(false);
         classButton.setSelected(false);
         clussButton.setSelected(false);
@@ -582,6 +579,10 @@ public final class AppUI extends UITemplate {
         algDone.setContentText(applicationTemplate.manager.getPropertyValue("FINISHED_ALG_CONTENT"));
         algDone.showAndWait();
 
+    }
+
+    public boolean getAlgState() {
+        return algRunning;
     }
 
     public void disableSave() {

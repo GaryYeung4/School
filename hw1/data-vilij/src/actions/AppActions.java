@@ -127,6 +127,34 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleExitRequest() {
+        AppUI appUI = (AppUI) (UITemplate) applicationTemplate.getUIComponent();
+        try {
+            if (saveState) {
+                
+            } else {
+                try {
+                    if (promptToSave()) {
+                        appUI.disableSave();
+                        sameFile = null;
+                        this.setSaveState(false);
+                    }
+                } catch (Exception e) {
+                    ErrorDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("DATA_INC_FORMAT_TITLE"), e.getLocalizedMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        if (appUI.getAlgState()) {
+            ConfirmationDialog.getDialog().show(applicationTemplate.manager.getPropertyValue("EXIT_WHILE_RUNNING_WARNING_TITLE"), applicationTemplate.manager.getPropertyValue("EXIT_WHILE_RUNNING_WARNING"));
+            Option userResponse = ConfirmationDialog.getDialog().getSelectedOption();
+            if (userResponse == YES) {
+                System.exit(0);
+            } else {
+                return;
+            }
+        }
         System.exit(0);
     }
 
