@@ -4,11 +4,14 @@ package ui;
 import actions.AppActions;
 import algorithm.DataSet;
 import classification.RandomClassifier;
+import cluster.KMeansClusterer;
+import cluster.RandomClusterer;
 import dataprocessors.TSDProcessor;
 import static java.io.File.separator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -68,9 +71,15 @@ public final class AppUI extends UITemplate {
     private VBox algList;
     private ConfigScreen randClassConfScrn;
     private RandomClassifier randClass;
+    private RandomClusterer randClus;
+    private KMeansClusterer kMeansClus;
     private ConfigScreen randClussConfScrn;
+    private ConfigScreen kMeansClussConfScrn;
     private int runCount;
     private boolean algRunning;
+    private NumberAxis xAxis;
+    private NumberAxis yAxis;
+    private String currAlg;
 
     public LineChart<Number, Number> getChart() {
         return chart;
@@ -175,6 +184,7 @@ public final class AppUI extends UITemplate {
         algList = new VBox();
         randClassConfScrn = new ConfigScreen();
         randClussConfScrn = new ConfigScreen();
+        kMeansClussConfScrn = new ConfigScreen();
         leftSide.getChildren().addAll(classButton, clussButton, algList);
         leftSide.setMaxWidth(windowWidth * .3);
         algRunning = false;
@@ -186,10 +196,12 @@ public final class AppUI extends UITemplate {
         leftSide.getChildren().add(runButton);
         //chart
         VBox rightSide = new VBox();
-        NumberAxis xAxis = new NumberAxis();
+        xAxis = new NumberAxis();
         xAxis.setTickLabelFill(Color.CHOCOLATE);
-        NumberAxis yAxis = new NumberAxis();
+        yAxis = new NumberAxis();
         yAxis.setTickLabelFill(Color.CHOCOLATE);
+        xAxis.forceZeroInRangeProperty().setValue(false);
+        yAxis.forceZeroInRangeProperty().setValue(false);
         chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle("Data Visualization");
         chart.setHorizontalGridLinesVisible(false);
@@ -231,6 +243,7 @@ public final class AppUI extends UITemplate {
         runButton.setManaged(false);
         ToggleGroup clussAlgs = new ToggleGroup();
         addAlgToUI("Random Clustering  ", clussAlgs, "Clustering");
+        addAlgToUI("KMeansClusterer  ", clussAlgs, "KMeansCluster");
         algList.setVisible(true);
         algList.setDisable(false);
         algList.setManaged(true);
@@ -242,9 +255,11 @@ public final class AppUI extends UITemplate {
         alg.setText(algName);
         alg.setToggleGroup(group);
         alg.setOnAction(e -> {
+            runCount = 0;
             runButton.setVisible(true);
             runButton.setManaged(true);
             runButton.setDisable(true);
+            currAlg = algName;
         });
         algBox.getChildren().add(alg);
         Button randClassSettings = new Button("Config");
@@ -254,9 +269,16 @@ public final class AppUI extends UITemplate {
                 randClassConfScrn.showClassSettings();
                 runButton.setDisable(false);
             });
-        } else if (algType.equals("Clustering")) {
+        }
+        if (algType.equals("Clustering")) {
             randClassSettings.setOnAction(e -> {
                 randClussConfScrn.showClusSettings();
+                runButton.setDisable(false);
+            });
+        }
+        else if(algType.equals("KMeansCluster")){
+            randClassSettings.setOnAction(e -> {
+                kMeansClussConfScrn.showClusSettings();
                 runButton.setDisable(false);
             });
         }
@@ -427,11 +449,14 @@ public final class AppUI extends UITemplate {
         double newLargeY = yCoords.get(0);
         for (int i = 0; i < xCoords.size(); ++i) {
             double currVal = xCoords.get(i);
+            double currYVal = yCoords.get(i);
             if (smallestX > currVal) {
                 smallestX = currVal;
+                newSmallY = currYVal;
             }
             if (largestX < currVal) {
                 largestX = currVal;
+                newLargeY = currYVal;
             }
         }
         newSmallY = ((outputs.get(2)) - (outputs.get(0) * smallestX)) / outputs.get(1);
@@ -472,7 +497,185 @@ public final class AppUI extends UITemplate {
         }
     }
 
+    private void runRandomClassifAlg(TSDProcessor tsdProcessor) {
+        if (randClassConfScrn.getContinueState()) {
+            runButton.setDisable(true);
+            Thread algRunner = new Thread(() -> {
+                algRunning = true;
+                Random RAND = new Random();
+                for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
+                    if (i % randClassConfScrn.getUpdateInterval() == 0) {
+                        Platform.runLater(() -> {
+                            randClass.run();
+                            ArrayList<Integer> output = randClass.getDataOutput();
+                            addClassifLine(tsdProcessor, output);
+                            System.out.println("unscaled Y");
+                        });
+                    }
+                    if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
+                        Platform.runLater(() -> {
+                            randClass.run();
+                            ArrayList<Integer> output = randClass.getDataOutput();
+                            addClassifLine(tsdProcessor, output);
+                        });
+                        break;
+                    }
+                    if (i < (randClassConfScrn.getIterationCount()) - 1) {
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                Platform.runLater(() -> {
+                    algorithmFinished();
+                });
+            });
+            algRunner.start();
+        } else {
+            algRunning = true;
+            scrnshotButton.setDisable(true);
+            this.runNotContAlgorithm(tsdProcessor);
+        }
+    }
+
+    private void runRandClusAlg(TSDProcessor tsdp) {
+        if (randClussConfScrn.getContinueState()) {
+            runButton.setDisable(true);
+            Thread algRunner = new Thread(() -> {
+                algRunning = true;
+                Random RAND = new Random();
+                for (int i = 0; i < randClussConfScrn.getIterationCount(); ++i) {
+                    if (i % randClussConfScrn.getUpdateInterval() == 0) {
+                        Platform.runLater(() -> {
+                            chart.getData().clear();
+                            randClus.run();
+                            Map<String, String> newLabels = randClus.getLabels();
+                            tsdp.setDataLabels(newLabels);
+                            tsdp.toChartData(chart);
+
+                        });
+                    }
+                    if (i < (randClussConfScrn.getIterationCount()) - 1) {
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                Platform.runLater(() -> {
+                    algorithmFinished();
+                });
+            });
+            algRunner.start();
+        } else {
+            algRunning = true;
+            scrnshotButton.setDisable(true);
+            this.runNotContRandClusAlgorithm(tsdp);
+        }
+
+    }
+
+    private void runNotContRandClusAlgorithm(TSDProcessor tsdp) {
+        ++runCount;
+        Thread algRunner = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    runButton.setText("Continue");
+                    chart.getData().clear();
+                    randClus.run();
+                    Map<String, String> newLabels = randClus.getLabels();
+                    tsdp.setDataLabels(newLabels);
+                    tsdp.toChartData(chart);
+                    scrnshotButton.setDisable(false);
+                    if ((runCount * randClussConfScrn.getUpdateInterval()) >= randClussConfScrn.getIterationCount()) {
+                        runCount = 0;
+                        runButton.setText("Run");
+                        Platform.runLater(() -> {
+                            algorithmFinished();
+                        });
+                    }
+
+                });
+            }
+        });
+        algRunner.start();
+
+    }
+
+    private void runKMeansAlg(TSDProcessor tsdp) {
+        if (kMeansClussConfScrn.getContinueState()) {
+            runButton.setDisable(true);
+            Thread algRunner = new Thread(() -> {
+                algRunning = true;
+                Random RAND = new Random();
+                for (int i = 0; i < kMeansClussConfScrn.getIterationCount(); ++i) {
+                    if (i % kMeansClussConfScrn.getUpdateInterval() == 0) {
+                        Platform.runLater(() -> {
+                            chart.getData().clear();
+                            kMeansClus.run();
+                            Map<String, String> newLabels = kMeansClus.getDataLabels();
+                            tsdp.setDataLabels(newLabels);
+                            tsdp.toChartData(chart);
+
+                        });
+                    }
+                    if (i < (kMeansClussConfScrn.getIterationCount()) - 1) {
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                Platform.runLater(() -> {
+                    algorithmFinished();
+                });
+            });
+            algRunner.start();
+        } else {
+            algRunning = true;
+            scrnshotButton.setDisable(true);
+            this.runNotContKMeansClusAlgorithm(tsdp);
+        }
+
+    }
+    
+    private void runNotContKMeansClusAlgorithm(TSDProcessor tsdp) {
+        ++runCount;
+        Thread algRunner = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    runButton.setText("Continue");
+                    chart.getData().clear();
+                    kMeansClus.run();
+                    Map<String, String> newLabels = kMeansClus.getDataLabels();
+                    tsdp.setDataLabels(newLabels);
+                    tsdp.toChartData(chart);
+                    scrnshotButton.setDisable(false);
+                    if ((runCount * kMeansClussConfScrn.getUpdateInterval()) >= kMeansClussConfScrn.getIterationCount()) {
+                        runCount = 0;
+                        runButton.setText("Run");
+                        Platform.runLater(() -> {
+                            algorithmFinished();
+                        });
+                    }
+
+                });
+            }
+        });
+        algRunner.start();
+
+    }
+
+
     private void handleRunRequest() {
+        chart.getData().clear();
+        yAxis.setAutoRanging(true);
         scrnshotButton.setDisable(true);
         String userInput = textArea.getText();
         if (newText.compareTo(userInput) == 0) {
@@ -481,51 +684,25 @@ public final class AppUI extends UITemplate {
             hasNewText = true;
         }
         newText = userInput;
-        chart.getData().clear();
         TSDProcessor tsdProcessor = new TSDProcessor();
         try {
+            System.out.println("Rescaled Y");
             tsdProcessor.processString(userInput);
             DataSet dataSet = new DataSet(tsdProcessor.getDataLabels(), tsdProcessor.getDataPoints());
             randClass = new RandomClassifier(dataSet, randClassConfScrn.getIterationCount(), randClassConfScrn.getUpdateInterval(), randClassConfScrn.getContinueState());
-            tsdProcessor.toChartData(chart);
-            if (randClassConfScrn.getContinueState()) {
-                runButton.setDisable(true);
-                Thread algRunner = new Thread(() -> {
-                    algRunning = true;
-                    Random RAND = new Random();
-                    for (int i = 0; i < randClassConfScrn.getIterationCount(); ++i) {
-                        if (i % randClassConfScrn.getUpdateInterval() == 0) {
-                            Platform.runLater(() -> {
-                                randClass.run();
-                                ArrayList<Integer> output = randClass.getDataOutput();
-                                addClassifLine(tsdProcessor, output);
-                            });
-                        }
-                        if (i > randClassConfScrn.getIterationCount() * .6 && RAND.nextDouble() < 0.05) {
-                            Platform.runLater(() -> {
-                                randClass.run();
-                                ArrayList<Integer> output = randClass.getDataOutput();
-                                addClassifLine(tsdProcessor, output);
-                            });
-                            break;
-                        }
-                        if (i < (randClassConfScrn.getIterationCount()) - 1) {
-                            try {
-                                Thread.sleep(50);
-                            } catch (InterruptedException ex) {
-                                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
-                    }
-                    Platform.runLater(() -> {
-                        algorithmFinished();
-                    });
-                });
-                algRunner.start();
-            } else {
-                algRunning = true;
-                scrnshotButton.setDisable(true);
-                this.runNotContAlgorithm(tsdProcessor);
+            randClus = new RandomClusterer(dataSet, randClussConfScrn.getIterationCount(), randClussConfScrn.getUpdateInterval(), randClussConfScrn.getContinueState(), randClussConfScrn.getLabelCount());
+            kMeansClus = new KMeansClusterer(dataSet, randClussConfScrn.getIterationCount(), randClussConfScrn.getUpdateInterval(), randClussConfScrn.getContinueState(), randClussConfScrn.getLabelCount());
+            if (currAlg.equals("RandomClassifier  ")) {
+                tsdProcessor.toChartData(chart);
+                this.runRandomClassifAlg(tsdProcessor);
+            }
+            if (currAlg.equals("KMeansClusterer  ")) {
+                this.runKMeansAlg(tsdProcessor);
+                System.out.println("Running kmeans algorithm");
+            }
+            if (currAlg.equals("Random Clustering  ")) {
+                this.runRandClusAlg(tsdProcessor);
+                System.out.println("Running random clustering algorithm");
             }
             this.addNodeListeners();
         } catch (Exception e) {

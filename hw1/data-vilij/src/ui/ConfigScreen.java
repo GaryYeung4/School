@@ -27,20 +27,20 @@ public class ConfigScreen {
     private int labelCount;
     private Stage settings;
     private VBox window;
-    
-    public int getIterationCount(){
+
+    public int getIterationCount() {
         return iterationCount;
     }
-    
-    public int getUpdateInterval(){
+
+    public int getUpdateInterval() {
         return updateInterval;
     }
-    
-    public boolean getContinueState(){
+
+    public boolean getContinueState() {
         return continuous;
     }
-    
-    public int getLabelCount(){
+
+    public int getLabelCount() {
         return labelCount;
     }
 
@@ -203,11 +203,16 @@ public class ConfigScreen {
     private void processUserInputs(String labelNum, String itCount, String updateInt, boolean cont) {
         try {
             this.labelCount = Integer.parseInt(labelNum);
-            if (Integer.parseInt(labelNum) <= 0) {
-                this.labelCount = 1;
+            if (Integer.parseInt(labelNum) <= 1) {
+                this.labelCount = 2;
+            }
+            if (Integer.parseInt(labelNum) >= 5) {
+                System.out.println(Integer.parseInt(labelNum) + " was the label count");
+                System.out.println("changing label count to 4");
+                this.labelCount = 4;
             }
         } catch (Exception e) {
-            this.labelCount = 1;
+            this.labelCount = 2;
         }
         processUserInputs(itCount, updateInt, cont);
     }

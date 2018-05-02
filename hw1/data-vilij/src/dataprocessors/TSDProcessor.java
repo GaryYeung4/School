@@ -52,6 +52,9 @@ public final class TSDProcessor {
         labels = new ArrayList<>();
         
     }
+    public void setDataLabels(Map<String, String> newLabels){
+        this.dataLabels = newLabels;
+    }
     public Map<String,String> getDataLabels(){
         return dataLabels;
     }
