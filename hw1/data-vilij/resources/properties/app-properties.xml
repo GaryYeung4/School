@@ -7,6 +7,10 @@ functionality within the main workspace. -->
         <!-- RESOURCE FILES AND FOLDERS -->
         <property name="DATA_RESOURCE_PATH" value="./data-vilij/resources/data"/>
 
+        <!-- Algorithm List -->
+        <property name="RANDOM_CLUSTERING" value="Random Clustering  "/>
+        <property name="KMEANS_CLUSTERING" value="KMeans Clusterering  "/>
+        <property name="RANDOM_CLASSIFICATION" value="RandomClassifier  "/>
         <!-- USER INTERFACE ICON FILES -->
         <property name="SCREENSHOT_ICON" value="screenshot.png"/>
 

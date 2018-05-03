@@ -230,7 +230,7 @@ public final class AppUI extends UITemplate {
         runButton.setVisible(false);
         runButton.setManaged(false);
         ToggleGroup classAlgs = new ToggleGroup();
-        addAlgToUI("RandomClassifier  ", classAlgs, "Classification");
+        addAlgToUI(applicationTemplate.manager.getPropertyValue("RANDOM_CLASSIFICATION"), classAlgs);
         algList.setVisible(true);
         algList.setDisable(false);
         algList.setManaged(true);
@@ -242,14 +242,14 @@ public final class AppUI extends UITemplate {
         runButton.setVisible(false);
         runButton.setManaged(false);
         ToggleGroup clussAlgs = new ToggleGroup();
-        addAlgToUI("Random Clustering  ", clussAlgs, "Clustering");
-        addAlgToUI("KMeansClusterer  ", clussAlgs, "KMeansCluster");
+        addAlgToUI(applicationTemplate.manager.getPropertyValue("RANDOM_CLUSTERING"), clussAlgs);
+        addAlgToUI(applicationTemplate.manager.getPropertyValue("KMEANS_CLUSTERING"), clussAlgs);
         algList.setVisible(true);
         algList.setDisable(false);
         algList.setManaged(true);
     }
 
-    private void addAlgToUI(String algName, ToggleGroup group, String algType) {
+    private void addAlgToUI(String algName, ToggleGroup group) {
         HBox algBox = new HBox();
         RadioButton alg = new RadioButton();
         alg.setText(algName);
@@ -264,19 +264,19 @@ public final class AppUI extends UITemplate {
         algBox.getChildren().add(alg);
         Button randClassSettings = new Button("Config");
         algBox.getChildren().add(randClassSettings);
-        if (algType.equals("Classification")) {
+        if (algName.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLASSIFICATION"))) {
             randClassSettings.setOnAction(e -> {
                 randClassConfScrn.showClassSettings();
                 runButton.setDisable(false);
             });
         }
-        if (algType.equals("Clustering")) {
+        if (algName.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLUSTERING"))) {
             randClassSettings.setOnAction(e -> {
                 randClussConfScrn.showClusSettings();
                 runButton.setDisable(false);
             });
         }
-        else if(algType.equals("KMeansCluster")){
+        else if(algName.equals(applicationTemplate.manager.getPropertyValue("KMEANS_CLUSTERING"))){
             randClassSettings.setOnAction(e -> {
                 kMeansClussConfScrn.showClusSettings();
                 runButton.setDisable(false);
@@ -692,15 +692,16 @@ public final class AppUI extends UITemplate {
             randClass = new RandomClassifier(dataSet, randClassConfScrn.getIterationCount(), randClassConfScrn.getUpdateInterval(), randClassConfScrn.getContinueState());
             randClus = new RandomClusterer(dataSet, randClussConfScrn.getIterationCount(), randClussConfScrn.getUpdateInterval(), randClussConfScrn.getContinueState(), randClussConfScrn.getLabelCount());
             kMeansClus = new KMeansClusterer(dataSet, randClussConfScrn.getIterationCount(), randClussConfScrn.getUpdateInterval(), randClussConfScrn.getContinueState(), randClussConfScrn.getLabelCount());
-            if (currAlg.equals("RandomClassifier  ")) {
+            if (currAlg.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLASSIFICATION"))) {
                 tsdProcessor.toChartData(chart);
+                System.out.println("Running random classification algorithm");
                 this.runRandomClassifAlg(tsdProcessor);
             }
-            if (currAlg.equals("KMeansClusterer  ")) {
-                this.runKMeansAlg(tsdProcessor);
+            if (currAlg.equals(applicationTemplate.manager.getPropertyValue("KMEANS_CLUSTERING"))) {
                 System.out.println("Running kmeans algorithm");
+                this.runKMeansAlg(tsdProcessor);
             }
-            if (currAlg.equals("Random Clustering  ")) {
+            if (currAlg.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLUSTERING"))) {
                 this.runRandClusAlg(tsdProcessor);
                 System.out.println("Running random clustering algorithm");
             }

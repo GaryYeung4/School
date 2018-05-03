@@ -9,6 +9,11 @@ package settings;
  */
 public enum AppPropertyTypes {
     
+    //Algorithm List
+    RANDOM_CLUSTERING,
+    KMEANS_CLUSTERING,
+    RANDOM_CLASSIFICATION,
+    
     //Algorithm Finished Text
     FINISHED_ALG_TITLE,
     FINISHED_ALG_HEADER,

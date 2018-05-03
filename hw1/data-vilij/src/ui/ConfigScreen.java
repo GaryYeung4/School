@@ -180,7 +180,7 @@ public class ConfigScreen {
 
     }
 
-    private void processUserInputs(String itCount, String updateInt, boolean cont) {
+    protected void processUserInputs(String itCount, String updateInt, boolean cont) {
         try {
             this.iterationCount = Integer.parseInt(itCount);
             if (Integer.parseInt(itCount) <= 0) {
@@ -200,7 +200,7 @@ public class ConfigScreen {
         this.continuous = cont;
     }
 
-    private void processUserInputs(String labelNum, String itCount, String updateInt, boolean cont) {
+    protected void processUserInputs(String labelNum, String itCount, String updateInt, boolean cont) {
         try {
             this.labelCount = Integer.parseInt(labelNum);
             if (Integer.parseInt(labelNum) <= 1) {
