@@ -55,6 +55,12 @@ public class RandomClassifier extends Classifier {
             int maxIterations,
             int updateInterval,
             boolean tocontinue) {
+        if (maxIterations < 1) {
+            maxIterations = 1;
+        }
+        if (updateInterval < 1) {
+            updateInterval = 1;
+        }
         this.dataset = dataset;
         this.maxIterations = maxIterations;
         this.updateInterval = updateInterval;

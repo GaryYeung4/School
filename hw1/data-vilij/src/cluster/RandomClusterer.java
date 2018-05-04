@@ -18,27 +18,30 @@ import javafx.geometry.Point2D;
  *
  * @author garyy
  */
-public class RandomClusterer extends Clusterer{
-    
-    private DataSet       dataset;
+public class RandomClusterer extends Clusterer {
+
+    private DataSet dataset;
     private List<Point2D> centroids;
     private List<String> labels;
 
-    private final int           maxIterations;
-    private final int           updateInterval;
+    private final int maxIterations;
+    private final int updateInterval;
     private final AtomicBoolean tocontinue;
-
-
-
 
     public RandomClusterer(DataSet dataset, int maxIterations, int updateInterval, boolean cont, int numberOfClusters) {
         super(numberOfClusters);
+        if (maxIterations < 1) {
+            maxIterations = 1;
+        }
+        if (updateInterval < 1) {
+            updateInterval = 1;
+        }
         this.dataset = dataset;
         this.maxIterations = maxIterations;
         this.updateInterval = updateInterval;
         this.tocontinue = new AtomicBoolean(cont);
     }
-    
+
     @Override
     public int getMaxIterations() {
         return this.maxIterations;
@@ -59,14 +62,14 @@ public class RandomClusterer extends Clusterer{
         Random rand = new Random();
         Map<String, String> userLabels = dataset.getLabels();
         Set<String> keys = userLabels.keySet();
-        for(String key: keys){
+        for (String key : keys) {
             dataset.updateLabel(key, Integer.toString((rand.nextInt(super.getNumberOfClusters()))));
         }
-        
-        
+
     }
-    public Map<String, String> getLabels(){
+
+    public Map<String, String> getLabels() {
         return dataset.getLabels();
     }
-    
+
 }

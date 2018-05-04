@@ -9,6 +9,9 @@ import cluster.RandomClusterer;
 import dataprocessors.TSDProcessor;
 import static java.io.File.separator;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -35,6 +38,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import properties.AlgorithmList;
 import settings.AppPropertyTypes;
 import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
@@ -225,25 +229,65 @@ public final class AppUI extends UITemplate {
     }
 
     public void handleClassAlgButton() {
+        ArrayList<String> algs = new ArrayList<>();
+        Field classificationList = null;
+        AlgorithmList algorithmList = new AlgorithmList();
+        try {
+            classificationList = AlgorithmList.class.getDeclaredField("classificationAlgorithms");
+            classificationList.setAccessible(true);
+            try {
+                algs = (ArrayList<String>) classificationList.get(algorithmList);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SecurityException ex) {
+            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
         algList.getChildren().remove(0, algList.getChildren().size());
         runButton.setDisable(true);
         runButton.setVisible(false);
         runButton.setManaged(false);
         ToggleGroup classAlgs = new ToggleGroup();
-        addAlgToUI(applicationTemplate.manager.getPropertyValue("RANDOM_CLASSIFICATION"), classAlgs);
+        for (int i = 0; i < algs.size(); ++i) {
+            addAlgToUI(algs.get(i), classAlgs);
+        }
         algList.setVisible(true);
         algList.setDisable(false);
         algList.setManaged(true);
     }
 
     public void handleClussAlgButton() {
+        ArrayList<String> algs = new ArrayList<>();
+        Field classificationList = null;
+        AlgorithmList algorithmList = new AlgorithmList();
+        try {
+            classificationList = AlgorithmList.class.getDeclaredField("clusteringAlgorithms");
+            classificationList.setAccessible(true);
+            try {
+                algs = (ArrayList<String>) classificationList.get(algorithmList);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SecurityException ex) {
+            Logger.getLogger(AppUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        algList.getChildren().remove(0, algList.getChildren().size());
         algList.getChildren().remove(0, algList.getChildren().size());
         runButton.setDisable(true);
         runButton.setVisible(false);
         runButton.setManaged(false);
         ToggleGroup clussAlgs = new ToggleGroup();
-        addAlgToUI(applicationTemplate.manager.getPropertyValue("RANDOM_CLUSTERING"), clussAlgs);
-        addAlgToUI(applicationTemplate.manager.getPropertyValue("KMEANS_CLUSTERING"), clussAlgs);
+        for (int i = 0; i < algs.size(); ++i) {
+            addAlgToUI(algs.get(i), clussAlgs);
+        }
         algList.setVisible(true);
         algList.setDisable(false);
         algList.setManaged(true);
@@ -264,19 +308,18 @@ public final class AppUI extends UITemplate {
         algBox.getChildren().add(alg);
         Button randClassSettings = new Button("Config");
         algBox.getChildren().add(randClassSettings);
-        if (algName.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLASSIFICATION"))) {
+        if (algName.equals("Random Classifier")) {
             randClassSettings.setOnAction(e -> {
                 randClassConfScrn.showClassSettings();
                 runButton.setDisable(false);
             });
         }
-        if (algName.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLUSTERING"))) {
+        if (algName.equals("Random Clusterer")) {
             randClassSettings.setOnAction(e -> {
                 randClussConfScrn.showClusSettings();
                 runButton.setDisable(false);
             });
-        }
-        else if(algName.equals(applicationTemplate.manager.getPropertyValue("KMEANS_CLUSTERING"))){
+        } else if (algName.equals("KMeans Clusterer")) {
             randClassSettings.setOnAction(e -> {
                 kMeansClussConfScrn.showClusSettings();
                 runButton.setDisable(false);
@@ -643,7 +686,7 @@ public final class AppUI extends UITemplate {
         }
 
     }
-    
+
     private void runNotContKMeansClusAlgorithm(TSDProcessor tsdp) {
         ++runCount;
         Thread algRunner = new Thread(new Runnable() {
@@ -672,7 +715,6 @@ public final class AppUI extends UITemplate {
 
     }
 
-
     private void handleRunRequest() {
         chart.getData().clear();
         yAxis.setAutoRanging(true);
@@ -692,16 +734,16 @@ public final class AppUI extends UITemplate {
             randClass = new RandomClassifier(dataSet, randClassConfScrn.getIterationCount(), randClassConfScrn.getUpdateInterval(), randClassConfScrn.getContinueState());
             randClus = new RandomClusterer(dataSet, randClussConfScrn.getIterationCount(), randClussConfScrn.getUpdateInterval(), randClussConfScrn.getContinueState(), randClussConfScrn.getLabelCount());
             kMeansClus = new KMeansClusterer(dataSet, randClussConfScrn.getIterationCount(), randClussConfScrn.getUpdateInterval(), randClussConfScrn.getContinueState(), randClussConfScrn.getLabelCount());
-            if (currAlg.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLASSIFICATION"))) {
+            if (currAlg.equals("Random Classifier")) {
                 tsdProcessor.toChartData(chart);
                 System.out.println("Running random classification algorithm");
                 this.runRandomClassifAlg(tsdProcessor);
             }
-            if (currAlg.equals(applicationTemplate.manager.getPropertyValue("KMEANS_CLUSTERING"))) {
+            if (currAlg.equals("KMeans Clusterer")) {
                 System.out.println("Running kmeans algorithm");
                 this.runKMeansAlg(tsdProcessor);
             }
-            if (currAlg.equals(applicationTemplate.manager.getPropertyValue("RANDOM_CLUSTERING"))) {
+            if (currAlg.equals("Random Clusterer")) {
                 this.runRandClusAlg(tsdProcessor);
                 System.out.println("Running random clustering algorithm");
             }

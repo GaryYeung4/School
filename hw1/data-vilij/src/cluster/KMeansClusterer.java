@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package cluster;
+
 import algorithm.Clusterer;
 import javafx.geometry.Point2D;
 
@@ -22,16 +23,21 @@ import algorithm.DataSet;
  */
 public class KMeansClusterer extends Clusterer {
 
-    private DataSet       dataset;
+    private DataSet dataset;
     private List<Point2D> centroids;
 
-    private final int           maxIterations;
-    private final int           updateInterval;
+    private final int maxIterations;
+    private final int updateInterval;
     private final AtomicBoolean tocontinue;
-
 
     public KMeansClusterer(DataSet dataset, int maxIterations, int updateInterval, boolean cont, int numberOfClusters) {
         super(numberOfClusters);
+        if (maxIterations < 1) {
+            maxIterations = 1;
+        }
+        if (updateInterval < 1) {
+            updateInterval = 1;
+        }
         this.dataset = dataset;
         this.maxIterations = maxIterations;
         this.updateInterval = updateInterval;
@@ -39,13 +45,19 @@ public class KMeansClusterer extends Clusterer {
     }
 
     @Override
-    public int getMaxIterations() { return maxIterations; }
+    public int getMaxIterations() {
+        return maxIterations;
+    }
 
     @Override
-    public int getUpdateInterval() { return updateInterval; }
+    public int getUpdateInterval() {
+        return updateInterval;
+    }
 
     @Override
-    public boolean tocontinue() { return tocontinue.get(); }
+    public boolean tocontinue() {
+        return tocontinue.get();
+    }
 
     @Override
     public void run() {
@@ -56,18 +68,20 @@ public class KMeansClusterer extends Clusterer {
             recomputeCentroids();
         }
     }
-    public Map<String,String> getDataLabels(){
+
+    public Map<String, String> getDataLabels() {
         return dataset.getLabels();
     }
 
     private void initializeCentroids() {
-        Set<String>  chosen        = new HashSet<>();
+        Set<String> chosen = new HashSet<>();
         List<String> instanceNames = new ArrayList<>(dataset.getLabels().keySet());
-        Random       r             = new Random();
+        Random r = new Random();
         while (chosen.size() < numberOfClusters) {
             int i = r.nextInt(instanceNames.size());
-            while (chosen.contains(instanceNames.get(i)))
+            while (chosen.contains(instanceNames.get(i))) {
                 ++i;
+            }
             chosen.add(instanceNames.get(i));
         }
         centroids = chosen.stream().map(name -> dataset.getLocations().get(name)).collect(Collectors.toList());
@@ -76,8 +90,8 @@ public class KMeansClusterer extends Clusterer {
 
     private void assignLabels() {
         dataset.getLocations().forEach((instanceName, location) -> {
-            double minDistance      = Double.MAX_VALUE;
-            int    minDistanceIndex = -1;
+            double minDistance = Double.MAX_VALUE;
+            int minDistanceIndex = -1;
             for (int i = 0; i < centroids.size(); i++) {
                 double distance = computeDistance(centroids.get(i), location);
                 if (distance < minDistance) {
@@ -94,14 +108,14 @@ public class KMeansClusterer extends Clusterer {
         IntStream.range(0, numberOfClusters).forEach(i -> {
             AtomicInteger clusterSize = new AtomicInteger();
             Point2D sum = dataset.getLabels()
-                                 .entrySet()
-                                 .stream()
-                                 .filter(entry -> i == Integer.parseInt(entry.getValue()))
-                                 .map(entry -> dataset.getLocations().get(entry.getKey()))
-                                 .reduce(new Point2D(0, 0), (p, q) -> {
-                                     clusterSize.incrementAndGet();
-                                     return new Point2D(p.getX() + q.getX(), p.getY() + q.getY());
-                                 });
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> i == Integer.parseInt(entry.getValue()))
+                    .map(entry -> dataset.getLocations().get(entry.getKey()))
+                    .reduce(new Point2D(0, 0), (p, q) -> {
+                        clusterSize.incrementAndGet();
+                        return new Point2D(p.getX() + q.getX(), p.getY() + q.getY());
+                    });
             Point2D newCentroid = new Point2D(sum.getX() / clusterSize.get(), sum.getY() / clusterSize.get());
             if (!newCentroid.equals(centroids.get(i))) {
                 centroids.set(i, newCentroid);
@@ -113,5 +127,5 @@ public class KMeansClusterer extends Clusterer {
     private static double computeDistance(Point2D p, Point2D q) {
         return Math.sqrt(Math.pow(p.getX() - q.getX(), 2) + Math.pow(p.getY() - q.getY(), 2));
     }
-    
+
 }
